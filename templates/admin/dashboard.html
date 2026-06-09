@@ -1,0 +1,127 @@
+{% extends 'admin/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-file-lines"></i></div>
+        <div class="stat-info">
+            <div class="num">{{ pages|length }}</div>
+            <div class="label">Pages</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-palette"></i></div>
+        <div class="stat-info">
+            <div class="num">{{ themes|length }}</div>
+            <div class="label">Themes Available</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-droplet"></i></div>
+        <div class="stat-info">
+            <div class="num">{{ schemes|length }}</div>
+            <div class="label">Color Schemes</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: {% if s.maintenance_mode %}#ef444418{% else %}#22c55e18{% endif %}; color: {% if s.maintenance_mode %}#ef4444{% else %}#22c55e{% endif %};">
+            <i class="fa-solid fa-{% if s.maintenance_mode %}wrench{% else %}circle-check{% endif %}"></i>
+        </div>
+        <div class="stat-info">
+            <div class="num" style="font-size:1rem;">{% if s.maintenance_mode %}Maintenance{% else %}Live{% endif %}</div>
+            <div class="label">Site Status</div>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="card">
+        <div class="card-title"><i class="fa-solid fa-sliders"></i> Current Configuration</div>
+        <table>
+            <tr><th>Setting</th><th>Value</th><th></th></tr>
+            <tr>
+                <td>Site Name</td>
+                <td><strong>{{ s.site_name }}</strong></td>
+                <td><a href="/admin/settings" class="btn btn-secondary btn-sm">Edit</a></td>
+            </tr>
+            <tr>
+                <td>Active Theme</td>
+                <td>
+                    {% for t in themes %}{% if t.id == s.theme %}<span class="badge badge-yellow"><i class="fa-solid fa-palette"></i> {{ t.name }}</span>{% endif %}{% endfor %}
+                </td>
+                <td><a href="/admin/settings#themes" class="btn btn-secondary btn-sm">Change</a></td>
+            </tr>
+            <tr>
+                <td>Color Scheme</td>
+                <td>
+                    {% for c in schemes %}{% if c.id == s.color_scheme %}
+                    <span style="display:inline-flex; align-items:center; gap:8px;">
+                        <span style="display:inline-flex; gap:3px; border-radius:4px; overflow:hidden;">
+                            <span style="width:16px;height:16px;background:{{ c.primary }};"></span>
+                            <span style="width:16px;height:16px;background:{{ c.accent }};"></span>
+                            <span style="width:16px;height:16px;background:{{ c.bg }};border:1px solid #333;"></span>
+                        </span>
+                        {{ c.name }}
+                    </span>
+                    {% endif %}{% endfor %}
+                </td>
+                <td><a href="/admin/settings#schemes" class="btn btn-secondary btn-sm">Change</a></td>
+            </tr>
+            <tr>
+                <td>Button Style</td>
+                <td><span class="badge badge-yellow"><i class="fa-solid fa-square"></i> {{ s.button_style|title }}</span></td>
+                <td><a href="/admin/settings#buttons" class="btn btn-secondary btn-sm">Change</a></td>
+            </tr>
+            <tr>
+                <td>Animations</td>
+                <td>
+                    {% if s.animations_enabled %}
+                    <span class="badge badge-green"><i class="fa-solid fa-check"></i> Enabled</span>
+                    {% else %}
+                    <span class="badge badge-red"><i class="fa-solid fa-xmark"></i> Disabled</span>
+                    {% endif %}
+                </td>
+                <td><a href="/admin/settings" class="btn btn-secondary btn-sm">Toggle</a></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fa-solid fa-file-lines"></i> Pages</div>
+        <table>
+            <tr><th>Page</th><th>Slug</th><th>Status</th><th></th></tr>
+            {% for p in pages %}
+            <tr>
+                <td><i class="fa-solid fa-{% if p.is_home %}house{% else %}file{% endif %}" style="color:var(--primary);margin-right:6px;"></i>{{ p.title }}</td>
+                <td><code style="font-size:0.8rem;background:var(--bg);padding:2px 6px;border-radius:4px;">/{{ p.slug }}</code></td>
+                <td>
+                    {% if p.visible %}
+                    <span class="badge badge-green"><i class="fa-solid fa-eye"></i> Visible</span>
+                    {% else %}
+                    <span class="badge badge-red"><i class="fa-solid fa-eye-slash"></i> Hidden</span>
+                    {% endif %}
+                </td>
+                <td><a href="/admin/pages/{{ p.id }}" class="btn btn-secondary btn-sm">Edit</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div style="margin-top: 16px;">
+            <a href="/admin/pages/new" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> New Page</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title"><i class="fa-solid fa-bolt"></i> Quick Actions</div>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+        <a href="/admin/settings" class="btn btn-secondary"><i class="fa-solid fa-sliders"></i> Site Settings</a>
+        <a href="/admin/pages/new" class="btn btn-secondary"><i class="fa-solid fa-plus"></i> New Page</a>
+        <a href="/admin/nav" class="btn btn-secondary"><i class="fa-solid fa-bars"></i> Edit Navigation</a>
+        <a href="/admin/initiatives" class="btn btn-secondary"><i class="fa-solid fa-star"></i> Manage CTAs</a>
+        <a href="/admin/socials" class="btn btn-secondary"><i class="fa-solid fa-share-nodes"></i> Social Links</a>
+        <a href="/" target="_blank" class="btn btn-primary"><i class="fa-solid fa-arrow-up-right-from-square"></i> View Live Site</a>
+    </div>
+</div>
+{% endblock %}

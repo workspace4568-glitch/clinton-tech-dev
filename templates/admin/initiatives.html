@@ -1,0 +1,176 @@
+{% extends 'admin/base.html' %}
+{% block title %}Initiatives / CTAs{% endblock %}
+{% block page_title %}Initiatives &amp; CTAs{% endblock %}
+{% block content %}
+
+<p style="color:var(--muted); font-size:0.9rem; margin-bottom:24px;">
+    Initiatives are call-to-action cards shown on your homepage. Each has a title, description, icon, and button.
+</p>
+
+<!-- EXISTING INITIATIVES -->
+{% for init in initiatives %}
+<div class="card">
+    <div class="card-title">
+        <i class="{{ init.icon }}" style="color:var(--primary);"></i>
+        {{ init.title }}
+        <span style="margin-left:auto;">
+            <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this initiative?');">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="id" value="{{ init.id }}">
+                <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i> Delete</button>
+            </form>
+        </span>
+    </div>
+    <form method="POST" action="/admin/initiatives/{{ init.id }}">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" value="{{ init.title }}" required>
+            </div>
+            <div class="form-group">
+                <label>Font Awesome Icon</label>
+                <input type="text" name="icon" value="{{ init.icon }}" placeholder="e.g. fa-solid fa-rocket">
+            </div>
+            <div class="form-group full">
+                <label>Description</label>
+                <textarea name="description">{{ init.description }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Button Text</label>
+                <input type="text" name="button_text" value="{{ init.button_text }}">
+            </div>
+            <div class="form-group">
+                <label>Button Link</label>
+                <div style="position:relative;">
+                    <input type="text" name="button_link" value="{{ init.button_link }}"
+                           placeholder="/contact  or  https://example.com"
+                           style="padding-right:90px;"
+                           oninput="detectExternalAny(this)">
+                    <span class="ext-badge" style="
+                        display:{% if init.button_link and init.button_link.startswith('http') %}inline-flex{% else %}none{% endif %};
+                        position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                        align-items:center;gap:4px;background:var(--primary)20;color:var(--primary);
+                        font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;
+                        pointer-events:none;text-transform:uppercase;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> External
+                    </span>
+                </div>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+                <div class="checkbox-row">
+                    <input type="checkbox" name="button_new_tab" id="inittab-{{ init.id }}"
+                           {% if init.get('button_new_tab') %}checked{% endif %}>
+                    <label for="inittab-{{ init.id }}">
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--primary);margin-right:4px;"></i>
+                        Open link in new tab
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top:16px;">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+        </div>
+    </form>
+</div>
+{% endfor %}
+
+<!-- ADD NEW -->
+<div class="card" style="border-color: var(--primary)40;">
+    <div class="card-title"><i class="fa-solid fa-plus"></i> Add New Initiative</div>
+    <form method="POST">
+        <input type="hidden" name="action" value="add">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" required placeholder="e.g. Static Websites">
+            </div>
+            <div class="form-group">
+                <label>Font Awesome Icon</label>
+                <input type="text" name="icon" placeholder="fa-solid fa-bolt" required>
+            </div>
+            <div class="form-group full">
+                <label>Description</label>
+                <textarea name="description" placeholder="Short description of this service or initiative..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Button Text</label>
+                <input type="text" name="button_text" placeholder="Learn More">
+            </div>
+            <div class="form-group">
+                <label>Button Link</label>
+                <div style="position:relative;">
+                    <input type="text" name="button_link" placeholder="/contact  or  https://example.com"
+                           style="padding-right:90px;" oninput="detectExternalAny(this)">
+                    <span class="ext-badge" style="
+                        display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                        align-items:center;gap:4px;background:var(--primary)20;color:var(--primary);
+                        font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;
+                        pointer-events:none;text-transform:uppercase;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> External
+                    </span>
+                </div>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+                <div class="checkbox-row">
+                    <input type="checkbox" name="button_new_tab" id="new-btn-newtab">
+                    <label for="new-btn-newtab">
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--primary);margin-right:4px;"></i>
+                        Open link in new tab
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Icon Quick Picks -->
+        <div style="margin: 16px 0; padding: 14px; background: var(--bg); border-radius: 6px; border: 1px solid var(--border);">
+            <p style="font-size:0.78rem; color:var(--muted); margin-bottom:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Quick Icon Picks</p>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                {% for label, icon in [
+                    ('Rocket','fa-solid fa-rocket'),
+                    ('Code','fa-solid fa-code'),
+                    ('Store','fa-solid fa-store'),
+                    ('Chart','fa-solid fa-chart-line'),
+                    ('Mobile','fa-solid fa-mobile-screen'),
+                    ('Server','fa-solid fa-server'),
+                    ('Design','fa-solid fa-palette'),
+                    ('Security','fa-solid fa-shield-halved'),
+                    ('Speed','fa-solid fa-bolt'),
+                    ('Layers','fa-solid fa-layer-group'),
+                    ('Globe','fa-solid fa-globe'),
+                    ('Wrench','fa-solid fa-wrench'),
+                    ('Star','fa-solid fa-star'),
+                    ('Handshake','fa-solid fa-handshake'),
+                    ('Database','fa-solid fa-database')
+                ] %}
+                <button type="button"
+                        onclick="document.querySelector('[name=icon]').value='{{ icon }}';"
+                        style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:4px; color:var(--text); font-size:0.78rem; cursor:pointer;">
+                    <i class="{{ icon }}" style="color:var(--primary);"></i> {{ label }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Initiative</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function detectExternalAny(input) {
+    const val = input.value.trim();
+    const isExternal = val.startsWith('http://') || val.startsWith('https://');
+    const group = input.closest('div[style*="position:relative"]').parentElement;
+    const badge = input.parentElement.querySelector('.ext-badge');
+    if (badge) badge.style.display = isExternal ? 'inline-flex' : 'none';
+    if (isExternal) {
+        const form = input.closest('form');
+        if (form) {
+            const cb = form.querySelector('[name="button_new_tab"]');
+            if (cb) cb.checked = true;
+        }
+    }
+}
+</script>
+{% endblock %}

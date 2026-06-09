@@ -1,0 +1,80 @@
+{% extends 'admin/base.html' %}
+{% block title %}Social Links{% endblock %}
+{% block page_title %}Social Links{% endblock %}
+{% block content %}
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+    <div class="card">
+        <div class="card-title"><i class="fa-solid fa-share-nodes"></i> Current Social Links</div>
+        {% if socials %}
+        <table>
+            <tr><th>Icon</th><th>Platform</th><th>URL</th><th></th></tr>
+            {% for s in socials %}
+            <tr>
+                <td><i class="{{ s.icon }}" style="color:var(--primary); font-size:1.1rem;"></i></td>
+                <td><strong>{{ s.platform }}</strong></td>
+                <td><code style="font-size:0.78rem; word-break:break-all;">{{ s.url }}</code></td>
+                <td>
+                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="id" value="{{ s.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remove?')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p style="color:var(--muted); font-size:0.9rem;">No social links yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fa-solid fa-plus"></i> Add Social Link</div>
+        <form method="POST">
+            <input type="hidden" name="action" value="add">
+            <div class="form-group" style="margin-bottom:14px;">
+                <label>Platform Name</label>
+                <input type="text" name="platform" required placeholder="e.g. GitHub">
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+                <label>Profile URL</label>
+                <input type="url" name="url" required placeholder="https://github.com/yourname">
+            </div>
+            <div class="form-group" style="margin-bottom:8px;">
+                <label>Font Awesome Icon Class</label>
+                <input type="text" name="icon" placeholder="e.g. fa-brands fa-github" required>
+                <span class="form-hint">Use brand icons from <a href="https://fontawesome.com/icons?f=brands" target="_blank" style="color:var(--primary);">FA Brands</a></span>
+            </div>
+
+            <div style="margin: 16px 0; padding: 14px; background: var(--bg); border-radius: 6px; border: 1px solid var(--border);">
+                <p style="font-size:0.78rem; color:var(--muted); margin-bottom:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Common Icons</p>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    {% for platform, icon in [
+                        ('GitHub','fa-brands fa-github'),
+                        ('LinkedIn','fa-brands fa-linkedin'),
+                        ('Twitter/X','fa-brands fa-x-twitter'),
+                        ('Instagram','fa-brands fa-instagram'),
+                        ('YouTube','fa-brands fa-youtube'),
+                        ('Facebook','fa-brands fa-facebook'),
+                        ('Dribbble','fa-brands fa-dribbble'),
+                        ('Behance','fa-brands fa-behance'),
+                        ('CodePen','fa-brands fa-codepen'),
+                        ('Discord','fa-brands fa-discord'),
+                        ('Slack','fa-brands fa-slack'),
+                        ('WhatsApp','fa-brands fa-whatsapp')
+                    ] %}
+                    <button type="button" onclick="document.querySelector('[name=platform]').value='{{ platform }}'; document.querySelector('[name=icon]').value='{{ icon }}';"
+                            style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:4px; color:var(--text); font-size:0.78rem; cursor:pointer;">
+                        <i class="{{ icon }}"></i> {{ platform }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Social Link</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

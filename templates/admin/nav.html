@@ -1,0 +1,54 @@
+{% extends 'admin/base.html' %}
+{% block title %}Navigation{% endblock %}
+{% block page_title %}Navigation Menu{% endblock %}
+{% block content %}
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+    <div class="card">
+        <div class="card-title"><i class="fa-solid fa-bars"></i> Current Nav Links</div>
+        {% if nav %}
+        <table>
+            <tr><th>Icon</th><th>Label</th><th>URL</th><th></th></tr>
+            {% for item in nav %}
+            <tr>
+                <td><i class="{{ item.icon }}" style="color:var(--primary);"></i></td>
+                <td><strong>{{ item.label }}</strong></td>
+                <td><code style="font-size:0.8rem;">{{ item.url }}</code></td>
+                <td>
+                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="id" value="{{ item.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remove?')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p style="color:var(--muted);font-size:0.9rem;">No nav items yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fa-solid fa-plus"></i> Add Nav Link</div>
+        <form method="POST">
+            <input type="hidden" name="action" value="add">
+            <div class="form-group" style="margin-bottom:14px;">
+                <label>Label</label>
+                <input type="text" name="label" required placeholder="e.g. Portfolio">
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+                <label>URL</label>
+                <input type="text" name="url" required placeholder="e.g. /#portfolio or /about">
+            </div>
+            <div class="form-group" style="margin-bottom:20px;">
+                <label>Font Awesome Icon Class</label>
+                <input type="text" name="icon" placeholder="e.g. fa-solid fa-briefcase">
+                <span class="form-hint">Find icons at <a href="https://fontawesome.com/icons" target="_blank" style="color:var(--primary);">fontawesome.com/icons</a></span>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Link</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

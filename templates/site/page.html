@@ -1,0 +1,52 @@
+{% extends 'site/base.html' %}
+{% block content %}
+
+<!-- PAGE HERO -->
+<section style="padding: 80px 0 48px; background: var(--text)04; border-bottom: 1px solid var(--border);">
+    <div class="container">
+        <h1 class="section-heading">{{ page.title }}</h1>
+        <nav style="font-size:0.85rem; color:var(--text-muted);">
+            <a href="/">Home</a> <i class="fa-solid fa-chevron-right" style="font-size:0.65rem; margin: 0 6px;"></i>
+            {{ page.title }}
+        </nav>
+    </div>
+</section>
+
+{% for sec in sections %}
+{% if sec.type == 'hero' %}
+<section style="padding: var(--section-padding);">
+    <div class="container">
+        <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
+        {% if sec.subheading %}<p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>{% endif %}
+        {% if sec.content %}<div class="content-body animate-on-scroll">{{ sec.content | safe }}</div>{% endif %}
+        {% if sec.button_text %}
+        <div style="margin-top:28px;">
+            <a href="{{ sec.button_link or '#' }}" class="btn btn-primary" {% if sec.get('button_new_tab') %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ sec.button_text }}</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% elif sec.type == 'content' %}
+<section>
+    <div class="container">
+        {% if sec.heading %}<h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>{% endif %}
+        {% if sec.subheading %}<p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>{% endif %}
+        {% if sec.image_url %}
+        <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt }}"
+             style="border-radius: var(--radius); margin-bottom: 32px; max-height: 400px; width: 100%; object-fit: cover;" class="animate-on-scroll">
+        {% endif %}
+        <div class="content-body animate-on-scroll">{{ sec.content | safe }}</div>
+        {% if sec.button_text %}
+        <div style="margin-top:28px;">
+            <a href="{{ sec.button_link or '#' }}" class="btn btn-primary" {% if sec.get('button_new_tab') %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                <i class="fa-solid fa-arrow-right"></i> {{ sec.button_text }}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+{% endfor %}
+
+{% endblock %}

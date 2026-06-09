@@ -1,0 +1,43 @@
+{% extends 'admin/base.html' %}
+{% block title %}Pages{% endblock %}
+{% block page_title %}Pages{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <p style="color:var(--muted); font-size:0.9rem;">Manage all pages on your site</p>
+    <a href="/admin/pages/new" class="btn btn-primary"><i class="fa-solid fa-plus"></i> New Page</a>
+</div>
+<div class="card">
+    <table>
+        <thead>
+            <tr><th>Title</th><th>Slug</th><th>Type</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+        {% for p in pages %}
+        <tr>
+            <td>
+                <i class="fa-solid fa-{% if p.is_home %}house{% else %}file-lines{% endif %}" style="color:var(--primary);margin-right:8px;"></i>
+                <strong>{{ p.title }}</strong>
+            </td>
+            <td><code style="background:var(--bg);padding:2px 8px;border-radius:4px;font-size:0.8rem;">/{{ p.slug }}</code></td>
+            <td>{% if p.is_home %}<span class="badge badge-yellow">Home</span>{% else %}<span class="badge badge-green">Custom</span>{% endif %}</td>
+            <td>
+                {% if p.visible %}<span class="badge badge-green"><i class="fa-solid fa-eye"></i> Visible</span>
+                {% else %}<span class="badge badge-red"><i class="fa-solid fa-eye-slash"></i> Hidden</span>{% endif %}
+            </td>
+            <td>
+                <div style="display:flex; gap:8px;">
+                    <a href="/admin/pages/{{ p.id }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
+                    <a href="/{{ p.slug }}" target="_blank" class="btn btn-secondary btn-sm"><i class="fa-solid fa-eye"></i></a>
+                    {% if not p.is_home %}
+                    <form method="POST" action="/admin/pages/{{ p.id }}/delete" onsubmit="return confirm('Delete this page?');" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button>
+                    </form>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

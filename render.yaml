@@ -1,0 +1,57 @@
+# ============================================================
+# Clinton Tech Dev Suite — Render.com Blueprint
+# ============================================================
+# This file auto-configures your Render deployment.
+# Push to GitHub, then use Render > New > Blueprint.
+# ============================================================
+
+services:
+  - type: web
+    name: clinton-tech-dev-suite
+    env: python
+    region: oregon          # Change to: frankfurt, singapore, ohio
+    plan: free              # Upgrade to: starter ($7/mo) for always-on
+    branch: main
+
+    # ── Build & Start ──────────────────────────────────────
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 2 --bind 0.0.0.0:$PORT --timeout 120
+
+    # ── Health Check ───────────────────────────────────────
+    healthCheckPath: /
+
+    # ── Environment Variables ──────────────────────────────
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true          # Render auto-generates a secure random value
+
+      - key: ADMIN_USERNAME
+        value: admin                 # Change this to your preferred username
+
+      - key: ADMIN_PASSWORD
+        sync: false                  # You MUST set this manually in Render dashboard
+                                     # Dashboard > Environment > ADMIN_PASSWORD
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: clinton-db           # Must match the database name below
+          property: connectionString
+
+    # ── Auto-Deploy ────────────────────────────────────────
+    autoDeploy: true                 # Re-deploys on every GitHub push to main
+
+# ── Database ───────────────────────────────────────────────
+databases:
+  - name: clinton-db
+    plan: free                       # Free tier: expires after 90 days
+    region: oregon                   # Must match web service region above
+    databaseName: clinton_prod
+    user: clinton_user
+
+# ============================================================
+# AFTER FIRST DEPLOY:
+#   1. Go to your Web Service > Shell tab
+#   2. Run: python init_db.py
+#   3. Visit your .onrender.com URL
+#   4. Log in at /admin with your credentials
+# ============================================================

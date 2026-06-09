@@ -1,0 +1,79 @@
+{% extends 'site/base.html' %}
+{% block content %}
+
+<!-- Gallery Hero -->
+<section style="padding:80px 0 48px; background:var(--text)04; border-bottom:1px solid var(--border);">
+    <div class="container">
+        <p class="section-label animate-on-scroll"><i class="fa-solid fa-images"></i> Gallery</p>
+        <h1 class="section-heading animate-on-scroll">Our Gallery</h1>
+        <p class="section-sub animate-on-scroll">Browse our collection of images and videos.</p>
+
+        <!-- Category Filters -->
+        {% if categories|length > 1 %}
+        <div class="gallery-filters animate-on-scroll">
+            {% for cat in categories %}
+            <a href="/gallery?cat={{ cat }}" class="gallery-filter-btn {% if active_cat == cat %}active{% endif %}">
+                <i class="fa-solid fa-{% if cat == 'All' %}border-all{% elif cat == 'Video' %}video{% else %}tag{% endif %}"></i>
+                {{ cat }}
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Gallery Grid -->
+<section>
+    <div class="container">
+        {% if items %}
+        <div class="gallery-grid stagger-parent" id="galleryGrid">
+            {% for item in items %}
+            <div class="gallery-item stagger-child"
+                 onclick="openLightbox(galleryData, {{ loop.index0 }})">
+
+                {% if is_video(item.filename) %}
+                    <video src="/uploads/{{ item.filename }}" muted loop playsinline
+                           onmouseenter="this.play()" onmouseleave="this.pause()"></video>
+                    <span class="gallery-item-type"><i class="fa-solid fa-play"></i> Video</span>
+                {% else %}
+                    <img src="/uploads/{{ item.filename }}" alt="{{ item.title }}" loading="lazy">
+                    <span class="gallery-item-type" style="background:var(--accent);"><i class="fa-solid fa-image"></i> Photo</span>
+                {% endif %}
+
+                <div class="gallery-item-overlay">
+                    <div class="gallery-item-info">
+                        <h4>{{ item.title or 'Untitled' }}</h4>
+                        {% if item.caption %}<span>{{ item.caption }}</span>{% endif %}
+                        <span style="display:block;margin-top:4px;opacity:.6;font-size:.75rem;">
+                            <i class="fa-solid fa-folder"></i> {{ item.category }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- JS data for lightbox -->
+        <script>
+        const galleryData = [
+            {% for item in items %}
+            {
+                src: "/uploads/{{ item.filename }}",
+                type: "{{ 'video' if is_video(item.filename) else 'image' }}",
+                caption: "{{ item.title }}{% if item.caption %} — {{ item.caption }}{% endif %}"
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+        </script>
+
+        {% else %}
+        <div style="text-align:center; padding:80px 24px;">
+            <i class="fa-solid fa-images" style="font-size:4rem; color:var(--primary)40; display:block; margin-bottom:24px;"></i>
+            <h3 style="font-size:1.4rem; margin-bottom:12px;">No media yet</h3>
+            <p style="color:var(--text-muted);">Gallery items will appear here once added from the admin panel.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

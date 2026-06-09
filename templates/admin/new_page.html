@@ -1,0 +1,31 @@
+{% extends 'admin/base.html' %}
+{% block title %}New Page{% endblock %}
+{% block page_title %}New Page{% endblock %}
+{% block content %}
+<div class="card" style="max-width:600px;">
+    <div class="card-title"><i class="fa-solid fa-plus"></i> Create New Page</div>
+    <form method="POST">
+        <div class="form-group" style="margin-bottom:20px;">
+            <label>Page Title</label>
+            <input type="text" name="title" placeholder="e.g. About Us" required>
+        </div>
+        <div class="form-group" style="margin-bottom:24px;">
+            <label>URL Slug</label>
+            <input type="text" name="slug" placeholder="e.g. about-us" required pattern="[a-z0-9\-]+">
+            <span class="form-hint">Lowercase letters, numbers, and hyphens only. Example: <code>about-us</code></span>
+        </div>
+        <div style="display:flex; gap:12px;">
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Create Page</button>
+            <a href="/admin/pages" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelector('[name=title]').addEventListener('input', function() {
+    document.querySelector('[name=slug]').value = this.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
+});
+</script>
+{% endblock %}

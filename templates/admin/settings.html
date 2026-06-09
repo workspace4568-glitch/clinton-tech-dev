@@ -1,0 +1,184 @@
+{% extends 'admin/base.html' %}
+{% block title %}Site Settings{% endblock %}
+{% block page_title %}Site Settings{% endblock %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data">
+
+<!-- BRANDING -->
+<div class="card">
+    <div class="card-title"><i class="fa-solid fa-building"></i> Branding & Identity</div>
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Business / Site Name</label>
+            <input type="text" name="site_name" value="{{ s.site_name }}" required>
+        </div>
+        <div class="form-group">
+            <label>Tagline</label>
+            <input type="text" name="tagline" value="{{ s.tagline }}">
+        </div>
+        <div class="form-group">
+            <label>Logo Image</label>
+            <input type="file" name="logo" accept="image/*">
+            {% if s.logo_url %}<p class="form-hint">Current: {{ s.logo_url }}</p>{% endif %}
+        </div>
+        <div class="form-group">
+            <label>Favicon</label>
+            <input type="file" name="favicon" accept="image/*,.ico">
+            {% if s.favicon_url %}<p class="form-hint">Current: {{ s.favicon_url }}</p>{% endif %}
+        </div>
+        <div class="form-group full">
+            <label>Footer Text</label>
+            <input type="text" name="footer_text" value="{{ s.footer_text }}">
+        </div>
+    </div>
+</div>
+
+<!-- CONTACT -->
+<div class="card">
+    <div class="card-title"><i class="fa-solid fa-address-card"></i> Contact Information</div>
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="contact_email" value="{{ s.contact_email }}">
+        </div>
+        <div class="form-group">
+            <label>Phone</label>
+            <input type="text" name="contact_phone" value="{{ s.contact_phone }}">
+        </div>
+        <div class="form-group">
+            <label>Address</label>
+            <input type="text" name="contact_address" value="{{ s.contact_address }}">
+        </div>
+        <div class="form-group">
+            <label>Hours</label>
+            <input type="text" name="contact_hours" value="{{ s.contact_hours or '' }}" placeholder="Mon–Fri, 9am–6pm">
+        </div>
+    </div>
+</div>
+
+<!-- SEO -->
+<div class="card">
+    <div class="card-title"><i class="fa-solid fa-magnifying-glass"></i> SEO</div>
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Meta Title</label>
+            <input type="text" name="meta_title" value="{{ s.meta_title }}">
+        </div>
+        <div class="form-group">
+            <label>Meta Description</label>
+            <input type="text" name="meta_description" value="{{ s.meta_description }}">
+        </div>
+    </div>
+</div>
+
+<!-- THEME PICKER -->
+<div class="card" id="themes">
+    <div class="card-title"><i class="fa-solid fa-palette"></i> Theme ({{ themes|length }} Available)</div>
+    <div class="theme-grid">
+        {% for theme in themes %}
+        <label class="theme-option {% if s.theme == theme.id %}selected{% endif %}" onclick="this.parentElement.querySelectorAll('.theme-option').forEach(e=>e.classList.remove('selected')); this.classList.add('selected');">
+            <input type="radio" name="theme" value="{{ theme.id }}" {% if s.theme == theme.id %}checked{% endif %}>
+            <div class="theme-preview" style="background: linear-gradient(135deg,
+                {% if 'neon' in theme.id or 'dark' in theme.id or 'glass' in theme.id or 'cinematic' in theme.id %}#1a1a2e, #DC143C
+                {% elif 'gold' in theme.id or 'luxury' in theme.id %}#0a0a0a, #C9A84C
+                {% elif 'pastel' in theme.id %}#f0e6ff, #a8d8ea
+                {% elif 'retro' in theme.id %}#0a0a0a, #00FF00
+                {% elif 'organic' in theme.id or 'earthy' in theme.id or 'forest' in theme.id %}#2D6A4F, #74C69D
+                {% elif 'sunset' in theme.id or 'coral' in theme.id %}#FF6B6B, #FFD166
+                {% else %}#111, #DC143C{% endif %}
+                );"></div>
+            <div class="theme-name">{{ theme.name }}</div>
+            <div class="theme-desc">{{ theme.desc }}</div>
+        </label>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- COLOR SCHEME PICKER -->
+<div class="card" id="schemes">
+    <div class="card-title"><i class="fa-solid fa-droplet"></i> Color Scheme ({{ schemes|length }} Available)</div>
+    <div class="scheme-grid">
+        {% for scheme in schemes %}
+        <label class="scheme-option {% if s.color_scheme == scheme.id %}selected{% endif %}" onclick="this.parentElement.querySelectorAll('.scheme-option').forEach(e=>e.classList.remove('selected')); this.classList.add('selected');">
+            <input type="radio" name="color_scheme" value="{{ scheme.id }}" {% if s.color_scheme == scheme.id %}checked{% endif %}>
+            <div class="scheme-swatch">
+                <span style="background: {{ scheme.primary }};"></span>
+                <span style="background: {{ scheme.accent }};"></span>
+                <span style="background: {{ scheme.bg }}; border: 1px solid #333;"></span>
+            </div>
+            <div class="scheme-name">{{ scheme.name }}</div>
+        </label>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- BUTTON STYLES -->
+<div class="card" id="buttons">
+    <div class="card-title"><i class="fa-solid fa-hand-pointer"></i> Button Style</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px;">
+        {% for style in ['solid', 'outline', 'ghost', 'rounded', 'shadow', 'gradient', 'underline'] %}
+        <label style="border: 2px solid {% if s.button_style == style %}var(--primary){% else %}var(--border){% endif %}; border-radius: 8px; padding: 14px; cursor:pointer; transition: all 0.15s;" onclick="this.parentElement.querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)'); this.style.borderColor='var(--primary)';">
+            <input type="radio" name="button_style" value="{{ style }}" {% if s.button_style == style %}checked{% endif %} style="display:none;">
+            <div style="font-size:0.82rem; font-weight:700; text-transform:capitalize; margin-bottom:8px; color:var(--text);">{{ style }}</div>
+            <div style="
+                display:inline-block; padding:6px 14px; font-size:0.78rem; font-weight:600;
+                {% if style == 'solid' %}background:var(--primary); color:#fff; border-radius:4px;
+                {% elif style == 'outline' %}border:2px solid var(--primary); color:var(--primary); border-radius:4px;
+                {% elif style == 'ghost' %}color:var(--primary);
+                {% elif style == 'rounded' %}background:var(--primary); color:#fff; border-radius:50px;
+                {% elif style == 'shadow' %}background:var(--primary); color:#fff; border-radius:4px; box-shadow:3px 3px 0 #666;
+                {% elif style == 'gradient' %}background:linear-gradient(135deg,#DC143C,#FF6B6B); color:#fff; border-radius:4px;
+                {% elif style == 'underline' %}color:var(--primary); border-bottom:2px solid var(--primary);
+                {% endif %}
+            ">Button</div>
+        </label>
+        {% endfor %}
+    </div>
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Border Radius: <span id="radiusVal">{{ s.button_radius }}</span>px</label>
+            <input type="range" name="button_radius" min="0" max="50" value="{{ s.button_radius }}" oninput="document.getElementById('radiusVal').textContent=this.value" style="accent-color:var(--primary);">
+        </div>
+    </div>
+</div>
+
+<!-- FEATURES -->
+<div class="card">
+    <div class="card-title"><i class="fa-solid fa-toggle-on"></i> Features & Modes</div>
+    <div style="display: flex; flex-direction: column; gap: 18px;">
+        <div class="checkbox-row">
+            <input type="checkbox" name="animations_enabled" id="anim" {% if s.animations_enabled %}checked{% endif %}>
+            <label for="anim"><strong>Scroll Animations</strong> — Fade-in, stagger, and hover animations on the frontend</label>
+        </div>
+        <div class="checkbox-row">
+            <input type="checkbox" name="announcement_bar_enabled" id="ann" {% if s.announcement_bar_enabled %}checked{% endif %}>
+            <label for="ann"><strong>Announcement Bar</strong> — Show a banner at the top of every page</label>
+        </div>
+        <div class="form-group" style="margin-left:26px;">
+            <label>Announcement Text</label>
+            <input type="text" name="announcement_text" value="{{ s.announcement_text }}" placeholder="e.g. Currently accepting new client projects!">
+        </div>
+        <div class="form-group" style="margin-left:26px;">
+            <label>Announcement Link (optional)</label>
+            <input type="text" name="announcement_link" value="{{ s.announcement_link or '' }}" placeholder="https://...">
+        </div>
+        <hr style="border-color:var(--border);">
+        <div class="checkbox-row">
+            <input type="checkbox" name="maintenance_mode" id="maint" {% if s.maintenance_mode %}checked{% endif %}>
+            <label for="maint" style="color: var(--danger);"><strong>Maintenance Mode</strong> — Hides the site from visitors, shows maintenance page</label>
+        </div>
+        <div class="form-group" style="margin-left:26px;">
+            <label>Maintenance Message</label>
+            <input type="text" name="maintenance_message" value="{{ s.maintenance_message }}">
+        </div>
+    </div>
+</div>
+
+<div style="display:flex; gap:12px;">
+    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save All Settings</button>
+    <a href="/admin/dashboard" class="btn btn-secondary"><i class="fa-solid fa-xmark"></i> Cancel</a>
+</div>
+
+</form>
+{% endblock %}
