@@ -4,8 +4,37 @@
 {% for sec in sections %}
 {% if sec.type == 'hero' %}
 <!-- HERO -->
-<section class="hero" id="home">
-    <div class="container">
+<section class="hero" id="home" {% if sec.image_url and not (s.theme == 'bold-studio') %}style="background-image: url('/uploads/{{ sec.image_url }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
+    {% if sec.image_url and s.theme != 'bold-studio' %}<div style="position:absolute;inset:0;background:linear-gradient(to right,var(--bg) 55%,rgba(0,0,0,0.3));pointer-events:none;"></div>{% endif %}
+
+    {% if s.theme == 'bold-studio' and sec.image_url %}
+    {# BOLD STUDIO: Two-column split layout with image panel #}
+    <div class="container" style="display:grid;grid-template-columns:1fr 1fr;gap:0;max-width:100%;padding:0;position:relative;">
+        <div class="hero-content" style="padding:80px 60px;">
+            <div class="hero-eyebrow"><i class="fa-solid fa-code"></i> Web Developer</div>
+            <h1>{{ sec.heading }}</h1>
+            <span class="hero-accent-line"></span>
+            <p>{{ sec.subheading }}</p>
+            {% if sec.content %}<p style="color:var(--text-muted);">{{ sec.content }}</p>{% endif %}
+            <div class="hero-actions">
+                {% if sec.button_text %}
+                <a href="{{ sec.button_link or '#' }}" class="btn btn-primary"
+                   {% if sec.get('button_new_tab') %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                    <i class="fa-solid fa-arrow-right"></i> {{ sec.button_text }}
+                </a>
+                {% endif %}
+                <a href="#contact" class="btn btn-outline"><i class="fa-solid fa-envelope"></i> Get In Touch</a>
+            </div>
+        </div>
+        <div style="overflow:hidden;min-height:80vh;background:var(--primary);">
+            <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt or sec.heading }}"
+                 style="width:100%;height:100%;object-fit:cover;display:block;mix-blend-mode:multiply;opacity:0.92;">
+        </div>
+    </div>
+
+    {% else %}
+    {# ALL OTHER THEMES #}
+    <div class="container" style="position:relative;">
         <div class="hero-content">
             <div class="hero-eyebrow"><i class="fa-solid fa-code"></i> Web Developer</div>
             <h1>{{ sec.heading }}</h1>
@@ -25,6 +54,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </section>
 
 {% elif sec.type == 'services' %}
@@ -34,6 +64,12 @@
         <p class="section-label animate-on-scroll"><i class="fa-solid fa-gears"></i> Services</p>
         <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
         <p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>
+        {% if sec.image_url %}
+        <div class="animate-on-scroll" style="border-radius:var(--radius);overflow:hidden;margin-bottom:40px;max-height:320px;">
+            <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt or sec.heading }}"
+                 style="width:100%;height:320px;object-fit:cover;">
+        </div>
+        {% endif %}
         <div class="services-grid stagger-parent">
             <div class="service-card stagger-child">
                 <div class="service-icon"><i class="fa-solid fa-file-code"></i></div>
@@ -110,6 +146,12 @@
         <p class="section-label animate-on-scroll"><i class="fa-solid fa-briefcase"></i> Work</p>
         <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
         <p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>
+        {% if sec.image_url %}
+        <div class="animate-on-scroll" style="border-radius:var(--radius);overflow:hidden;margin-bottom:40px;max-height:360px;">
+            <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt or sec.heading }}"
+                 style="width:100%;height:360px;object-fit:cover;">
+        </div>
+        {% endif %}
         <div class="portfolio-grid stagger-parent">
             <div class="portfolio-card stagger-child">
                 <div class="portfolio-img"><i class="fa-solid fa-store"></i></div>
@@ -164,8 +206,9 @@
 
 {% elif sec.type == 'contact' %}
 <!-- CONTACT -->
-<section id="contact" class="contact-section">
-    <div class="container">
+<section id="contact" class="contact-section" {% if sec.image_url %}style="position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:cover;background-position:center;"{% endif %}>
+    {% if sec.image_url %}<div style="position:absolute;inset:0;background:var(--bg);opacity:0.92;pointer-events:none;"></div>{% endif %}
+    <div class="container" style="position:relative;">
         <p class="section-label animate-on-scroll"><i class="fa-solid fa-envelope"></i> Contact</p>
         <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
         <p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>
