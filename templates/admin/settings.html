@@ -7,7 +7,7 @@
 
 <!-- BRANDING -->
 <div class="card">
-    <div class="card-title"><i class="fa-solid fa-building"></i> Branding & Identity</div>
+    <div class="card-title"><i class="fa-solid fa-building"></i> Branding &amp; Identity</div>
     <div class="form-grid">
         <div class="form-group">
             <label>Business / Site Name</label>
@@ -113,6 +113,146 @@
     </div>
 </div>
 
+<!-- TYPOGRAPHY / FONTS -->
+<div class="card" id="fonts">
+    <div class="card-title"><i class="fa-solid fa-font"></i> Typography &amp; Fonts</div>
+    <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:20px;">
+        Enter any <a href="https://fonts.google.com" target="_blank" style="color:var(--primary);">Google Font</a> name exactly as it appears — e.g. <em>Inter</em>, <em>Playfair Display</em>, <em>Space Grotesk</em>, <em>Fira Code</em>. Leave blank to use the theme default.
+    </p>
+
+    <!-- Quick font presets -->
+    <div style="margin-bottom:24px;">
+        <p style="font-size:0.8rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:12px;">Quick Presets</p>
+        <div style="display:flex; flex-wrap:wrap; gap:10px;">
+            {% set presets = [
+                ('System Default', '', '', ''),
+                ('Modern Sans', 'Inter', 'Inter', ''),
+                ('Editorial', 'Playfair Display', 'Source Sans 3', ''),
+                ('Technical', 'Space Grotesk', 'DM Sans', 'Fira Code'),
+                ('Geometric', 'Outfit', 'Outfit', ''),
+                ('Classic Serif', 'Lora', 'Merriweather', ''),
+                ('Humanist', 'Nunito', 'Nunito', ''),
+                ('Display', 'Bebas Neue', 'Barlow', ''),
+                ('Minimal', 'DM Sans', 'DM Sans', 'DM Mono'),
+                ('Futuristic', 'Rajdhani', 'Exo 2', 'Share Tech Mono')
+            ] %}
+            {% for preset in presets %}
+            <button type="button" class="font-preset-btn"
+                data-heading="{{ preset[1] }}" data-body="{{ preset[2] }}" data-mono="{{ preset[3] }}"
+                style="padding:8px 16px; border:1px solid var(--border); border-radius:6px; cursor:pointer; background:var(--bg); color:var(--text); font-size:0.82rem; transition:all 0.15s;"
+                onclick="applyFontPreset(this)">
+                {{ preset[0] }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Heading Font</label>
+            <input type="text" name="font_heading" id="fontHeading" value="{{ s.font_heading or '' }}" placeholder="e.g. Playfair Display" oninput="previewFont('heading', this.value)">
+            <p class="form-hint">Used for H1, H2, H3 and section titles</p>
+            <div id="preview-heading" style="margin-top:10px; font-size:1.5rem; line-height:1.2; color:var(--text); min-height:36px; transition:font-family 0.3s;">The quick brown fox</div>
+        </div>
+        <div class="form-group">
+            <label>Body Font</label>
+            <input type="text" name="font_body" id="fontBody" value="{{ s.font_body or '' }}" placeholder="e.g. Inter" oninput="previewFont('body', this.value)">
+            <p class="form-hint">Used for paragraphs, labels and UI text</p>
+            <div id="preview-body" style="margin-top:10px; font-size:0.95rem; line-height:1.6; color:var(--text-muted); min-height:36px; transition:font-family 0.3s;">Sphinx of black quartz, judge my vow.</div>
+        </div>
+        <div class="form-group">
+            <label>Monospace Font</label>
+            <input type="text" name="font_mono" id="fontMono" value="{{ s.font_mono or '' }}" placeholder="e.g. Fira Code" oninput="previewFont('mono', this.value)">
+            <p class="form-hint">Used for code blocks and technical text</p>
+            <div id="preview-mono" style="margin-top:10px; font-size:0.9rem; line-height:1.5; color:var(--text-muted); min-height:36px; font-family:monospace; transition:font-family 0.3s;">const hello = () => 'world';</div>
+        </div>
+    </div>
+</div>
+
+<!-- LAYOUT & CONTAINER -->
+<div class="card" id="layout">
+    <div class="card-title"><i class="fa-solid fa-expand"></i> Layout &amp; Container</div>
+    <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:20px;">
+        Controls the content container width and horizontal alignment — works like CSS <code>max-width</code> + <code>margin</code>.
+    </p>
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Max Container Width: <strong id="widthVal">{{ s.container_max_width or 1200 }}</strong>px</label>
+            <input type="range" name="container_max_width" id="containerWidth"
+                min="800" max="1800" step="40"
+                value="{{ s.container_max_width or 1200 }}"
+                oninput="document.getElementById('widthVal').textContent=this.value; updateContainerPreview()"
+                style="accent-color:var(--primary); width:100%;">
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted);">
+                <span>800px (Narrow)</span><span>1040px</span><span>1280px</span><span>1520px</span><span>1800px (Full)</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Content Alignment</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;">
+                {% for val, label, icon in [('center','Centered','fa-align-center'),('left','Left-aligned','fa-align-left'),('right','Right-aligned','fa-align-right'),('full','Full Width','fa-arrows-left-right')] %}
+                <label style="display:flex; align-items:center; gap:10px; border:2px solid {% if (s.container_justify or 'center') == val %}var(--primary){% else %}var(--border){% endif %}; border-radius:8px; padding:12px 14px; cursor:pointer; transition:all 0.15s;" class="justify-opt"
+                    onclick="this.closest('.form-group').querySelectorAll('.justify-opt').forEach(e=>e.style.borderColor='var(--border)'); this.style.borderColor='var(--primary)'; updateContainerPreview();">
+                    <input type="radio" name="container_justify" value="{{ val }}" {% if (s.container_justify or 'center') == val %}checked{% endif %} style="display:none;">
+                    <i class="fa-solid {{ icon }}" style="color:var(--primary);"></i>
+                    <span style="font-size:0.85rem; font-weight:600;">{{ label }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Live container preview -->
+    <div style="margin-top:20px;">
+        <p style="font-size:0.8rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px;">Live Preview</p>
+        <div id="containerPreviewWrap" style="background:var(--border); border-radius:8px; padding:16px; position:relative; overflow:hidden;">
+            <div id="containerPreviewBar" style="height:32px; background:var(--primary); border-radius:4px; opacity:0.7; transition:all 0.3s; margin:0 auto;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- NAV / HAMBURGER STYLE -->
+<div class="card" id="nav-styles">
+    <div class="card-title"><i class="fa-solid fa-bars"></i> Navigation &amp; Hamburger Style</div>
+    <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:20px;">
+        Each style has a completely different animation and menu layout on mobile. Desktop nav is always an inline bar.
+    </p>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px;">
+        {% set nav_styles = [
+            ('slide-right', 'Slide Right', 'fa-arrow-right-to-bracket', 'Panel slides in from the right edge. Overlay dims the page.'),
+            ('slide-left',  'Slide Left',  'fa-arrow-left-to-bracket',  'Panel slides in from the left edge. Good for logo-first layouts.'),
+            ('dropdown',    'Drop Down',   'fa-chevron-down',            'Menu drops from the top navbar bar. Compact and classic.'),
+            ('fullscreen',  'Full Screen', 'fa-expand',                  'Menu expands to cover the entire screen. Bold and dramatic.'),
+            ('push',        'Push',        'fa-left-right',              'Page content shifts sideways as the sidebar slides open.'),
+        ] %}
+        {% for val, name, icon, desc in nav_styles %}
+        <label class="nav-style-opt" style="border:2px solid {% if (s.nav_style or 'slide-right') == val %}var(--primary){% else %}var(--border){% endif %}; border-radius:10px; padding:16px; cursor:pointer; transition:all 0.15s; display:flex; flex-direction:column; gap:8px;"
+            onclick="this.closest('div').querySelectorAll('.nav-style-opt').forEach(e=>e.style.borderColor='var(--border)'); this.style.borderColor='var(--primary)';">
+            <input type="radio" name="nav_style" value="{{ val }}" {% if (s.nav_style or 'slide-right') == val %}checked{% endif %} style="display:none;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid {{ icon }}" style="color:var(--primary); font-size:1.1rem; width:20px; text-align:center;"></i>
+                <span style="font-weight:700; font-size:0.9rem;">{{ name }}</span>
+            </div>
+            <p style="font-size:0.78rem; color:var(--text-muted); line-height:1.5; margin:0;">{{ desc }}</p>
+            <!-- Mini hamburger animation preview -->
+            <div class="ham-preview" data-style="{{ val }}" style="display:flex; align-items:center; gap:16px; margin-top:4px;">
+                <div class="ham-mini" style="position:relative; width:28px; height:20px; cursor:default;">
+                    <span style="position:absolute; display:block; width:20px; height:2px; background:var(--text); transition:all 0.35s; top:2px;"></span>
+                    <span style="position:absolute; display:block; width:20px; height:2px; background:var(--text); transition:all 0.35s; top:9px;"></span>
+                    <span style="position:absolute; display:block; width:20px; height:2px; background:var(--text); transition:all 0.35s; top:16px;"></span>
+                </div>
+                <span style="font-size:0.72rem; color:var(--text-muted);">→</span>
+                <div class="ham-mini open" data-style="{{ val }}" style="position:relative; width:28px; height:20px; cursor:default;">
+                    <span style="position:absolute; display:block; width:20px; height:2px; background:var(--primary); transition:all 0.35s;"></span>
+                    <span style="position:absolute; display:block; width:20px; height:2px; background:var(--primary); transition:all 0.35s;"></span>
+                    <span style="position:absolute; display:block; width:20px; height:2px; background:var(--primary); transition:all 0.35s;"></span>
+                </div>
+            </div>
+        </label>
+        {% endfor %}
+    </div>
+</div>
+
 <!-- BUTTON STYLES -->
 <div class="card" id="buttons">
     <div class="card-title"><i class="fa-solid fa-hand-pointer"></i> Button Style</div>
@@ -145,7 +285,7 @@
 
 <!-- FEATURES -->
 <div class="card">
-    <div class="card-title"><i class="fa-solid fa-toggle-on"></i> Features & Modes</div>
+    <div class="card-title"><i class="fa-solid fa-toggle-on"></i> Features &amp; Modes</div>
     <div style="display: flex; flex-direction: column; gap: 18px;">
         <div class="checkbox-row">
             <input type="checkbox" name="animations_enabled" id="anim" {% if s.animations_enabled %}checked{% endif %}>
@@ -181,4 +321,86 @@
 </div>
 
 </form>
+
+<script>
+// ── Font preview ──────────────────────────────────────────
+const loadedFonts = new Set();
+function previewFont(type, name) {
+    if (!name.trim()) {
+        document.getElementById('preview-' + type).style.fontFamily = '';
+        return;
+    }
+    const encoded = encodeURIComponent(name.trim());
+    if (!loadedFonts.has(encoded)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${encoded}:wght@400;600;700&display=swap`;
+        document.head.appendChild(link);
+        loadedFonts.add(encoded);
+    }
+    document.getElementById('preview-' + type).style.fontFamily = `'${name.trim()}', sans-serif`;
+}
+
+function applyFontPreset(btn) {
+    const h = btn.dataset.heading, b = btn.dataset.body, m = btn.dataset.mono;
+    document.getElementById('fontHeading').value = h;
+    document.getElementById('fontBody').value = b;
+    document.getElementById('fontMono').value = m;
+    previewFont('heading', h);
+    previewFont('body', b);
+    previewFont('mono', m);
+    // highlight active preset
+    btn.closest('div').querySelectorAll('.font-preset-btn').forEach(el => {
+        el.style.borderColor = 'var(--border)';
+        el.style.background = 'var(--bg)';
+    });
+    btn.style.borderColor = 'var(--primary)';
+    btn.style.background = 'var(--primary)18';
+}
+
+// Init previews on load
+window.addEventListener('DOMContentLoaded', () => {
+    const fh = document.getElementById('fontHeading').value;
+    const fb = document.getElementById('fontBody').value;
+    const fm = document.getElementById('fontMono').value;
+    if (fh) previewFont('heading', fh);
+    if (fb) previewFont('body', fb);
+    if (fm) previewFont('mono', fm);
+    updateContainerPreview();
+    initHamPreviews();
+});
+
+// ── Container width preview ──────────────────────────────
+function updateContainerPreview() {
+    const wrap = document.getElementById('containerPreviewWrap');
+    const bar  = document.getElementById('containerPreviewBar');
+    const maxW = parseInt(document.getElementById('containerWidth').value) || 1200;
+    const wrapW = wrap.offsetWidth - 32; // subtract padding
+    const justify = document.querySelector('input[name="container_justify"]:checked')?.value || 'center';
+    const pct = Math.min((maxW / 1800) * 100, 100);
+    bar.style.width = pct + '%';
+    bar.style.marginLeft = justify === 'left' ? '0' : justify === 'right' ? 'auto' : 'auto';
+    bar.style.marginRight = justify === 'right' ? '0' : justify === 'left' ? 'auto' : 'auto';
+    if (justify === 'full') bar.style.width = '100%';
+}
+
+// ── Hamburger open-state previews ────────────────────────
+function initHamPreviews() {
+    document.querySelectorAll('.ham-mini.open').forEach(el => {
+        const style = el.dataset.style;
+        const spans = el.querySelectorAll('span');
+        const s1 = spans[0], s2 = spans[1], s3 = spans[2];
+        if (style === 'slide-right' || style === 'slide-left' || style === 'fullscreen' || style === 'push') {
+            // X icon
+            s1.style.top = '9px'; s1.style.transform = 'rotate(45deg)';
+            s2.style.opacity = '0'; s2.style.transform = 'scaleX(0)';
+            s3.style.top = '9px'; s3.style.transform = 'rotate(-45deg)';
+        } else if (style === 'dropdown') {
+            s1.style.top = '9px'; s1.style.transform = 'rotate(45deg)';
+            s2.style.opacity = '0';
+            s3.style.top = '9px'; s3.style.transform = 'rotate(-45deg)';
+        }
+    });
+}
+</script>
 {% endblock %}
