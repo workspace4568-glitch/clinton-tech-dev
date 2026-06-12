@@ -223,7 +223,10 @@ def admin_settings():
                     animations_enabled=?, announcement_bar_enabled=?,
                     announcement_text=?, announcement_link=?,
                     maintenance_mode=?, maintenance_message=?,
-                    button_style=?, button_radius=?
+                    button_style=?, button_radius=?,
+                    container_max_width=?, container_justify=?,
+                    nav_style=?,
+                    font_heading=?, font_body=?, font_mono=?
                 WHERE id=1
             """, (
                 f.get('site_name',''), f.get('tagline',''),
@@ -234,7 +237,10 @@ def admin_settings():
                 f.get('meta_title',''), f.get('meta_description',''),
                 anim, ann, f.get('announcement_text',''), f.get('announcement_link',''),
                 maint, f.get('maintenance_message',''),
-                f.get('button_style','solid'), int(f.get('button_radius', 6))
+                f.get('button_style','solid'), int(f.get('button_radius', 6)),
+                int(f.get('container_max_width', 1200)), f.get('container_justify','center'),
+                f.get('nav_style','slide-right'),
+                f.get('font_heading',''), f.get('font_body',''), f.get('font_mono','')
             ))
             flash('Settings saved!', 'success')
             return redirect(url_for('admin_settings'))
@@ -430,17 +436,17 @@ def seed():
             execute(conn, "INSERT INTO pages (title,slug,is_home,visible,ord) VALUES ('Home','home',1,1,0)")
             cur = execute(conn, "SELECT id FROM pages WHERE is_home=1")
             home_id = dict(cur.fetchone())['id']
-            for i,(typ,h,sub,cont,bt,bl) in enumerate([
+            for i,(typ,h,sub,cont,bt,bl,img) in enumerate([
                 ('hero','Clinton Tech Dev Suite','Building Digital Experiences That Matter',
-                 'Professional web development solutions tailored for your business.','View My Work','#portfolio'),
-                ('services','What I Build','Full-stack solutions from concept to launch','','',''),
+                 'Professional web development solutions tailored for your business.','View My Work','#portfolio','default-hero.svg'),
+                ('services','What I Build','Full-stack solutions from concept to launch','','','','default-services.svg'),
                 ('about','About Me','Developer & Digital Craftsman',
-                 '<p>I specialise in creating high-performance websites and web applications that help businesses grow online.</p>','Download CV','#'),
-                ('portfolio','Portfolio','Recent Work','','',''),
-                ('contact','Get In Touch',"Let's build something great together",'','',''),
+                 '<p>I specialise in creating high-performance websites and web applications that help businesses grow online.</p>','Download CV','#','default-about.svg'),
+                ('portfolio','Portfolio','Recent Work','','','','default-portfolio.svg'),
+                ('contact','Get In Touch',"Let's build something great together",'','','','default-contact.svg'),
             ]):
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content,button_text,button_link) VALUES (?,?,?,1,?,?,?,?,?)",
-                        (home_id,typ,i,h,sub,cont,bt,bl))
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content,button_text,button_link,image_url) VALUES (?,?,?,1,?,?,?,?,?,?)",
+                        (home_id,typ,i,h,sub,cont,bt,bl,img))
             for i,(lbl,url,icon) in enumerate([
                 ('Home','/','fa-solid fa-house'),
                 ('Portfolio','/#portfolio','fa-solid fa-briefcase'),
