@@ -63,18 +63,47 @@ def _rewrite_html(html: str, depth: int) -> str:
         fix,
         html
     )
-    # Rewrite CSS url(...) references
-    def fix_url(m):
+
+    # Rewrite inline style background-image: url('/uploads/...')
+    def fix_inline_bg(m):
+        full_style = m.group(0)
+        def fix_url_in_style(um):
+            raw = um.group(1).strip("'\"")
+            if (raw.startswith('http') or raw.startswith('data:') or raw.startswith('#')):
+                return um.group(0)
+            clean = raw.lstrip('/')
+            return f"url('{prefix}{clean}')"
+        return re.sub(r"url\(([^)]+)\)", fix_url_in_style, full_style)
+
+    html = re.sub(r'style="[^"]*url\([^)]+\)[^"]*"', fix_inline_bg, html)
+
+    # Rewrite CSS url(...) references inside <style> blocks
+    def fix_style_block_url(m):
         url = m.group(1).strip('\'"')
-        if (url.startswith('http') or url.startswith('data:')
-                or url.startswith('#')):
+        if (url.startswith('http') or url.startswith('data:') or url.startswith('#')):
             return m.group(0)
         clean = url.lstrip('/')
         return f"url('{prefix}{clean}')"
-    html = re.sub(r"url\(([^)]+)\)", fix_url, html)
+
+    # Only fix non-http url() references inside style tags
+    def fix_style_block(m):
+        block = m.group(0)
+        block = re.sub(r"url\((['\"]?)(?!http|data:)([^)'\"]+)(['\"]?)\)",
+                       lambda x: f"url('{prefix}{x.group(2).lstrip('/')}')",
+                       block)
+        return block
+
+    html = re.sub(r'<style[^>]*>.*?</style>', fix_style_block, html, flags=re.DOTALL)
 
     # Remove admin-only links entirely (they don't exist in static export)
     html = re.sub(r'href=["\']/?admin[^"\']*["\']', 'href="#"', html)
+
+    # For push-style nav: the page-wrapper transform needs no JS in static export
+    html = html.replace('class="page-wrapper"', 'class="page-wrapper" style="transform:none!important"')
+
+    return html
+
+
 
     return html
 
