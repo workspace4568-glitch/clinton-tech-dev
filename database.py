@@ -70,7 +70,13 @@ _SQLITE_SCHEMA = """
         maintenance_mode INTEGER DEFAULT 0,
         maintenance_message TEXT DEFAULT 'Under maintenance. Back soon!',
         button_style TEXT DEFAULT 'solid',
-        button_radius INTEGER DEFAULT 6
+        button_radius INTEGER DEFAULT 6,
+        container_max_width INTEGER DEFAULT 1200,
+        container_justify TEXT DEFAULT 'center',
+        nav_style TEXT DEFAULT 'slide-right',
+        font_heading TEXT DEFAULT '',
+        font_body TEXT DEFAULT '',
+        font_mono TEXT DEFAULT ''
     );
     CREATE TABLE IF NOT EXISTS pages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -134,7 +140,10 @@ _PG_TABLES = [
         animations_enabled INTEGER DEFAULT 1, announcement_bar_enabled INTEGER DEFAULT 0,
         announcement_text TEXT DEFAULT '', announcement_link TEXT DEFAULT '',
         maintenance_mode INTEGER DEFAULT 0, maintenance_message TEXT DEFAULT 'Under maintenance. Back soon!',
-        button_style TEXT DEFAULT 'solid', button_radius INTEGER DEFAULT 6)""",
+        button_style TEXT DEFAULT 'solid', button_radius INTEGER DEFAULT 6,
+        container_max_width INTEGER DEFAULT 1200, container_justify TEXT DEFAULT 'center',
+        nav_style TEXT DEFAULT 'slide-right',
+        font_heading TEXT DEFAULT '', font_body TEXT DEFAULT '', font_mono TEXT DEFAULT '')""",
     """CREATE TABLE IF NOT EXISTS pages (
         id SERIAL PRIMARY KEY, title TEXT, slug TEXT UNIQUE,
         is_home INTEGER DEFAULT 0, visible INTEGER DEFAULT 1, ord INTEGER DEFAULT 0)""",
@@ -170,9 +179,15 @@ def init_db():
 def _migrate(conn):
     """Safely add new columns to existing databases without breaking anything."""
     migrations = [
-        ("sections",    "button_new_tab", "INTEGER DEFAULT 0"),
-        ("initiatives", "button_new_tab", "INTEGER DEFAULT 0"),
-        ("initiatives", "button_icon",    "TEXT DEFAULT ''"),
+        ("sections",      "button_new_tab",       "INTEGER DEFAULT 0"),
+        ("initiatives",   "button_new_tab",       "INTEGER DEFAULT 0"),
+        ("initiatives",   "button_icon",          "TEXT DEFAULT ''"),
+        ("site_settings", "container_max_width",  "INTEGER DEFAULT 1200"),
+        ("site_settings", "container_justify",    "TEXT DEFAULT 'center'"),
+        ("site_settings", "nav_style",            "TEXT DEFAULT 'slide-right'"),
+        ("site_settings", "font_heading",         "TEXT DEFAULT ''"),
+        ("site_settings", "font_body",            "TEXT DEFAULT ''"),
+        ("site_settings", "font_mono",            "TEXT DEFAULT ''"),
     ]
     for table, col, col_def in migrations:
         try:
