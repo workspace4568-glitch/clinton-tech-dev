@@ -271,6 +271,85 @@ function clearColorPair(btn, name) {
                 <input type="hidden" name="image_blur" value="{{ sec.image_blur or 0 }}">
                 {% endif %}
 
+                <!-- ── SECTION BACKGROUND COLOUR & ATTACHMENT ── -->
+                <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:4px;">
+                    <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">
+                        <i class="fa-solid fa-fill-drip" style="color:var(--primary);margin-right:6px;"></i> Section Background
+                    </p>
+                    <div class="form-grid" style="gap:20px;">
+
+                        <!-- Background colour -->
+                        <div class="form-group">
+                            <label>Background Colour
+                                <span style="font-size:0.7rem;color:var(--muted);font-weight:400;"> — overrides theme default for this section</span>
+                            </label>
+                            <div style="display:flex;gap:10px;align-items:center;">
+                                <input type="color" id="sec-bg-{{ sec.id }}" name="section_bg_color"
+                                       value="{{ sec.section_bg_color or '#ffffff' }}"
+                                       style="width:48px;height:38px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;"
+                                       oninput="document.getElementById('sec-bg-txt-{{ sec.id }}').value=this.value;">
+                                <input type="text" id="sec-bg-txt-{{ sec.id }}"
+                                       value="{{ sec.section_bg_color or '' }}"
+                                       placeholder="leave empty = theme default"
+                                       style="flex:1;"
+                                       oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))document.getElementById('sec-bg-{{ sec.id }}').value=this.value;">
+                                <button type="button"
+                                    onclick="document.getElementById('sec-bg-txt-{{ sec.id }}').value='';document.getElementById('sec-bg-{{ sec.id }}').value='#ffffff';this.closest('form').querySelector('[name=section_bg_color]').value='';"
+                                    style="background:none;border:1px solid var(--border);border-radius:6px;padding:7px 12px;color:var(--muted);cursor:pointer;font-size:0.75rem;white-space:nowrap;">
+                                    Clear
+                                </button>
+                            </div>
+                            <!-- Live preview swatch -->
+                            <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
+                                <div id="sec-bg-preview-{{ sec.id }}"
+                                     style="width:100%;height:36px;border-radius:6px;border:1.5px solid var(--border);transition:background 0.2s;background:{{ sec.section_bg_color or 'transparent' }};">
+                                </div>
+                            </div>
+                            <script>
+                            (function(){
+                                var picker = document.getElementById('sec-bg-{{ sec.id }}');
+                                var txt    = document.getElementById('sec-bg-txt-{{ sec.id }}');
+                                var prev   = document.getElementById('sec-bg-preview-{{ sec.id }}');
+                                function upd(v){ prev.style.background = v || 'transparent'; }
+                                picker.addEventListener('input', function(){ txt.value=this.value; upd(this.value); });
+                                txt.addEventListener('input', function(){
+                                    if(this.value.match(/^#[0-9a-fA-F]{6}$/)){ picker.value=this.value; upd(this.value); }
+                                    else if(!this.value){ upd('transparent'); }
+                                });
+                            })();
+                            </script>
+                        </div>
+
+                        <!-- Background scroll behaviour -->
+                        <div class="form-group">
+                            <label>Background Scroll Behaviour
+                                <span style="font-size:0.7rem;color:var(--muted);font-weight:400;"> — how bg image moves when scrolling</span>
+                            </label>
+                            <div style="display:flex;flex-direction:column;gap:8px;">
+                                {% for val, icon, label, desc in [
+                                    ('scroll',   'fa-scroll',         'Scroll with page',   'Background moves normally with the page content'),
+                                    ('fixed',    'fa-thumbtack',      'Fixed / Parallax',   'Background stays fixed while the section scrolls over it'),
+                                    ('local',    'fa-arrows-up-down', 'Local scroll',       'Background scrolls relative to the element's own content'),
+                                ] %}
+                                <label style="border:2px solid {% if (sec.bg_attachment or 'scroll') == val %}var(--primary){% else %}var(--border){% endif %};border-radius:8px;padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all 0.15s;"
+                                    onclick="this.closest('div').querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)');this.style.borderColor='var(--primary)';">
+                                    <input type="radio" name="bg_attachment" value="{{ val }}" {% if (sec.bg_attachment or 'scroll') == val %}checked{% endif %} style="display:none;">
+                                    <i class="fa-solid {{ icon }}" style="color:var(--primary);width:16px;text-align:center;flex-shrink:0;"></i>
+                                    <div>
+                                        <div style="font-weight:700;font-size:0.88rem;">{{ label }}</div>
+                                        <div style="font-size:0.73rem;color:var(--muted);margin-top:1px;line-height:1.4;">{{ desc }}</div>
+                                    </div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <p style="font-size:0.72rem;color:var(--muted);margin-top:8px;line-height:1.5;">
+                                ⚠️ <strong>Fixed</strong> is disabled on iOS Safari (browser limitation). It falls back to <strong>Scroll</strong> automatically on mobile.
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+
                 <!-- ── ICON STYLE CONTROLS (services sections) ── -->
                 {% if sec.type == 'services' %}
                 <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;">
