@@ -23,6 +23,49 @@
             {% if s.logo_url %}<p class="form-hint">Current: {{ s.logo_url }}</p>{% endif %}
         </div>
         <div class="form-group">
+            <label>Show Site Name After Logo</label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" name="logo_show_name" {% if s.logo_show_name %}checked{% endif %}>
+                Display site name text next to the logo
+            </label>
+        </div>
+        <div class="form-group">
+            <label>Logo Border Radius (%)</label>
+            <input type="number" name="logo_border_radius" min="0" max="50"
+                value="{{ s.logo_border_radius or '50' }}" style="max-width:120px;">
+            <p class="form-hint">50 = fully round circle. 0 = square. 8 = slightly rounded.</p>
+        </div>
+        <div class="form-group">
+            <label>Logo Border Width (px)</label>
+            <input type="number" name="logo_border_width" min="0" max="20"
+                value="{{ s.logo_border_width or 0 }}" style="max-width:120px;">
+        </div>
+        <div class="form-group">
+            <label>Logo Border Color</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <input type="color" name="logo_border_color" id="lbc"
+                    value="{{ s.logo_border_color or '#ffffff' }}" style="width:48px;height:36px;padding:2px;cursor:pointer;"
+                    oninput="document.getElementById('lbc_txt').value=this.value">
+                <input type="text" id="lbc_txt" placeholder="#ffffff or empty"
+                    value="{{ s.logo_border_color or '' }}"
+                    oninput="if(this.value) document.getElementById('lbc').value=this.value"
+                    style="max-width:180px;">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Logo Background Color</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <input type="color" name="logo_bg_color" id="lbg"
+                    value="{{ s.logo_bg_color or '#ffffff' }}" style="width:48px;height:36px;padding:2px;cursor:pointer;"
+                    oninput="document.getElementById('lbg_txt').value=this.value">
+                <input type="text" id="lbg_txt" placeholder="#ffffff or empty for transparent"
+                    value="{{ s.logo_bg_color or '' }}"
+                    oninput="if(this.value) document.getElementById('lbg').value=this.value"
+                    style="max-width:180px;">
+            </div>
+            <p class="form-hint">Useful for logos with transparent backgrounds.</p>
+        </div>
+        <div class="form-group">
             <label>Favicon</label>
             <input type="file" name="favicon" accept="image/*,.ico">
             {% if s.favicon_url %}<p class="form-hint">Current: {{ s.favicon_url }}</p>{% endif %}
