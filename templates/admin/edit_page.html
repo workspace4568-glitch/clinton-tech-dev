@@ -315,7 +315,7 @@
                                 {% for val, icon, label, desc in [
                                     ('scroll',   'fa-scroll',         'Scroll with page',   'Background moves normally with the page content'),
                                     ('fixed',    'fa-thumbtack',      'Fixed / Parallax',   'Background stays fixed while the section scrolls over it'),
-                                    ('local',    'fa-arrows-up-down', 'Local scroll',       'Background scrolls relative to the element's own content'),
+                                    ('local',    'fa-arrows-up-down', 'Local scroll',       'Background scrolls relative to the element&#39;s own content'),
                                 ] %}
                                 <label style="border:2px solid {% if (sec.bg_attachment or 'scroll') == val %}var(--primary){% else %}var(--border){% endif %};border-radius:8px;padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all 0.15s;"
                                     onclick="this.closest('div').querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)');this.style.borderColor='var(--primary)';">
