@@ -120,22 +120,16 @@
         </style>
 
         <div class="services-grid stagger-parent">
-            {% set svc_items = [
-                ('fa-file-code',       'Static Websites',   'Blazing-fast static sites with perfect Lighthouse scores, deployed on CDN for global reach.'),
-                ('fa-server',          'Web Applications',  'Full-stack apps with robust backends, databases, authentication, and APIs.'),
-                ('fa-palette',         'UI/UX Design',      'Pixel-perfect interfaces designed for conversion and exceptional user experience.'),
-                ('fa-cart-shopping',   'E-Commerce',        'Online stores optimized for sales with secure payment processing and inventory management.'),
-                ('fa-mobile-screen',   'Responsive Design', 'Every build is mobile-first, tested across devices for flawless performance everywhere.'),
-                ('fa-rocket',          'Deployment',        'Production-ready deployments on Render, Vercel, Netlify, or your preferred platform.'),
-            ] %}
-            {% for fa_icon, title, desc in svc_items %}
+            {% for card in service_cards %}
             <div class="service-card stagger-child">
-                <div class="svc-icon-wrap style-{{ _istyle }} border-{{ _iborder }} hover-{{ _ihover }}" data-index="{{ loop.index }}">
-                    <i class="fa-solid {{ fa_icon }}"></i>
+                <div class="svc-icon-wrap style-{{ _istyle }} border-{{ _iborder }} hover-{{ _ihover }}">
+                    <i class="{{ card.icon }}"></i>
                 </div>
-                <h3>{{ title }}</h3>
-                <p>{{ desc }}</p>
+                <h3>{{ card.title }}</h3>
+                <p>{{ card.description }}</p>
             </div>
+            {% else %}
+            <p style="color:var(--text-muted);grid-column:1/-1;">No service cards added yet. Add some in the admin panel.</p>
             {% endfor %}
         </div>
     </div>
@@ -197,27 +191,25 @@
         <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
         <p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>
         <div class="portfolio-grid stagger-parent">
-            {% set port_items = [
-                ('fa-store',           'E-Commerce Platform',   'Full-stack shop with Stripe payments, inventory system, and admin dashboard.'),
-                ('fa-hospital',        'Medical Clinic Site',   'HIPAA-considerate static site with appointment booking and staff pages.'),
-                ('fa-utensils',        'Restaurant Website',    'Stunning food-focused design with online menu, reservations, and gallery.'),
-                ('fa-scale-balanced',  'Law Firm Site',         'Professional, trust-building presence with practice areas and attorney bios.'),
-                ('fa-graduation-cap',  'University Portal',     'Information architecture for academic departments with event management.'),
-                ('fa-church',          'Church Community Site', 'Sermon archives, event calendar, and donation system for congregation.'),
-            ] %}
-            {% for fa_icon, title, desc in port_items %}
+            {% for item in portfolio_items %}
             <div class="portfolio-card stagger-child">
+                {% if item.link %}
+                <a href="{{ item.link }}" {% if item.link_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %} style="display:contents;">
+                {% endif %}
                 <div class="portfolio-img" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary)15,var(--accent)10);position:relative;overflow:hidden;">
-                    <i class="fa-solid {{ fa_icon }}" style="font-size:3rem;color:var(--primary);opacity:0.7;transition:all 0.4s cubic-bezier(0.23,1,0.32,1);"></i>
+                    <i class="{{ item.icon }}" style="font-size:3rem;color:var(--primary);opacity:0.7;transition:all 0.4s cubic-bezier(0.23,1,0.32,1);"></i>
                     <div style="position:absolute;inset:0;background:var(--primary);opacity:0;transition:opacity 0.35s;display:flex;align-items:center;justify-content:center;" class="port-hover-overlay">
-                        <i class="fa-solid fa-arrow-up-right-from-square" style="color:#fff;font-size:1.8rem;"></i>
+                        <i class="fa-solid {% if item.link %}fa-arrow-up-right-from-square{% else %}fa-eye{% endif %}" style="color:#fff;font-size:1.8rem;"></i>
                     </div>
                 </div>
                 <div class="portfolio-info">
-                    <h3>{{ title }}</h3>
-                    <p>{{ desc }}</p>
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.description }}</p>
                 </div>
+                {% if item.link %}</a>{% endif %}
             </div>
+            {% else %}
+            <p style="color:var(--text-muted);grid-column:1/-1;">No portfolio items added yet. Add some in the admin panel.</p>
             {% endfor %}
         </div>
         <div style="text-align:center; margin-top:48px;">
@@ -334,10 +326,43 @@
     <div class="container">
         <p class="section-label animate-on-scroll"><i class="fa-solid fa-star"></i> Initiatives</p>
         <h2 class="section-heading animate-on-scroll">What I Offer</h2>
+
+        <style>
+        .init-icon-wrap { display:flex; align-items:center; justify-content:center;
+            width:72px; height:72px; margin-bottom:20px; transition:all 0.35s cubic-bezier(0.23,1,0.32,1);
+            position:relative; overflow:hidden; flex-shrink:0; }
+        .init-icon-wrap.border-rounded  { border-radius:50%; }
+        .init-icon-wrap.border-square   { border-radius:4px; }
+        .init-icon-wrap.border-squircle { border-radius:22px; }
+        .init-icon-wrap.border-none     { border-radius:16px; }
+        .init-icon-wrap.style-default  { background:var(--primary)18; }
+        .init-icon-wrap.style-solid    { background:var(--primary); }
+        .init-icon-wrap.style-outline  { background:transparent; border:2px solid var(--primary); }
+        .init-icon-wrap.style-ghost    { background:transparent; }
+        .init-icon-wrap.style-glass    { background:rgba(255,255,255,0.1); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); }
+        .init-icon-wrap.style-shadow   { background:var(--bg); box-shadow:0 8px 24px rgba(0,0,0,0.15); }
+        .init-icon-wrap i { font-size:1.8rem; color:var(--primary); transition:all 0.35s; }
+        .init-icon-wrap.style-solid i  { color:#fff; }
+        .init-card:hover .init-icon-wrap.hover-zoom    { transform:scale(1.15); }
+        .init-card:hover .init-icon-wrap.hover-rotate  { transform:rotate(15deg) scale(1.05); }
+        .init-card:hover .init-icon-wrap.hover-bounce  { animation:iconBounce 0.5s ease; }
+        .init-card:hover .init-icon-wrap.hover-flip    { transform:rotateY(180deg); }
+        .init-card:hover .init-icon-wrap.hover-shake   { animation:iconShake 0.4s ease; }
+        .init-card:hover .init-icon-wrap.hover-pulse   { animation:iconPulse 0.6s ease; }
+        .init-card:hover .init-icon-wrap.hover-glow    { box-shadow:0 0 24px var(--primary)60, 0 0 48px var(--primary)30; }
+        .init-card:hover .init-icon-wrap.hover-spin    { transform:rotate(360deg); }
+        .init-card:hover .init-icon-wrap.hover-none    { transform:none; }
+        </style>
+
         <div class="initiatives-grid stagger-parent">
             {% for init in initiatives %}
+            {% set _istyle = init.get('icon_style') or 'default' %}
+            {% set _iborder = init.get('icon_border') or 'none' %}
+            {% set _ihover = init.get('icon_hover') or 'zoom' %}
             <div class="init-card stagger-child">
-                <i class="{{ init.icon }}"></i>
+                <div class="init-icon-wrap style-{{ _istyle }} border-{{ _iborder }} hover-{{ _ihover }}">
+                    <i class="{{ init.icon }}"></i>
+                </div>
                 <h3>{{ init.title }}</h3>
                 <p>{{ init.description }}</p>
                 <a href="{{ init.button_link }}" class="btn" {% if init.get('button_new_tab') %}target="_blank" rel="noopener noreferrer"{% endif %}>
