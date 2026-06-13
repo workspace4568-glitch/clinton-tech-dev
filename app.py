@@ -13,6 +13,14 @@ app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__fil
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'ico', 'svg'}
 
+def _safe_float(v, default=0.0):
+    try: return float(v or 0)
+    except: return default
+
+def _safe_int(v, default=0):
+    try: return int(v or 0)
+    except: return default
+
 ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'clinton2024')
 
@@ -325,11 +333,18 @@ def admin_update_section(section_id):
             image_url = fname
         execute(conn, """
             UPDATE sections SET heading=?,subheading=?,content=?,
-            button_text=?,button_link=?,button_new_tab=?,enabled=?,image_url=?,image_alt=?
+            button_text=?,button_link=?,button_new_tab=?,enabled=?,image_url=?,image_alt=?,
+            image_position=?,image_size=?,image_overlay=?,image_overlay_color=?,image_blur=?,
+            icon_style=?,icon_border=?,icon_hover=?
             WHERE id=?
         """, (f.get('heading',''), f.get('subheading',''), f.get('content',''),
               f.get('button_text',''), f.get('button_link',''), btn_new_tab, enabled,
-              image_url, f.get('image_alt',''), section_id))
+              image_url, f.get('image_alt',''),
+              f.get('image_position','center'), f.get('image_size','cover'),
+              _safe_float(f.get('image_overlay', 0)), f.get('image_overlay_color','#000000'),
+              _safe_int(f.get('image_blur', 0)),
+              f.get('icon_style','default'), f.get('icon_border','none'), f.get('icon_hover','zoom'),
+              section_id))
         page_id = sec['page_id']
     flash('Section saved!', 'success')
     return redirect(url_for('admin_edit_page', page_id=page_id))
