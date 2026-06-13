@@ -59,8 +59,8 @@
 
 {% elif sec.type == 'services' %}
 <!-- SERVICES -->
-{% set _overlay = (sec.image_overlay or 0)|string %}
-{% set _blur    = (sec.image_blur or 0)|string %}
+{% set _overlay = (sec.image_overlay or 0)|float %}
+{% set _blur    = (sec.image_blur or 0)|int %}
 {% set _pos     = sec.image_position or 'center' %}
 {% set _sz      = sec.image_size or 'cover' %}
 {% set _ocolor  = sec.image_overlay_color or '#000000' %}
@@ -138,8 +138,8 @@
 
 {% elif sec.type == 'about' %}
 <!-- ABOUT -->
-{% set _overlay = (sec.image_overlay or 0)|string %}
-{% set _blur    = (sec.image_blur or 0)|string %}
+{% set _overlay = (sec.image_overlay or 0)|float %}
+{% set _blur    = (sec.image_blur or 0)|int %}
 {% set _pos     = sec.image_position or 'center' %}
 {% set _sz      = sec.image_size or 'cover' %}
 {% set _ocolor  = sec.image_overlay_color or '#000000' %}
@@ -181,8 +181,8 @@
 
 {% elif sec.type == 'portfolio' %}
 <!-- PORTFOLIO -->
-{% set _overlay = (sec.image_overlay or 0)|string %}
-{% set _blur    = (sec.image_blur or 0)|string %}
+{% set _overlay = (sec.image_overlay or 0)|float %}
+{% set _blur    = (sec.image_blur or 0)|int %}
 {% set _pos     = sec.image_position or 'center' %}
 {% set _sz      = sec.image_size or 'cover' %}
 {% set _ocolor  = sec.image_overlay_color or '#000000' %}
@@ -233,8 +233,8 @@
 
 {% elif sec.type == 'contact' %}
 <!-- CONTACT -->
-{% set _overlay = (sec.image_overlay or 0.92)|string %}
-{% set _blur    = (sec.image_blur or 0)|string %}
+{% set _overlay = (sec.image_overlay or 0.92)|float %}
+{% set _blur    = (sec.image_blur or 0)|int %}
 {% set _pos     = sec.image_position or 'center' %}
 {% set _sz      = sec.image_size or 'cover' %}
 {% set _ocolor  = sec.image_overlay_color or '#000000' %}
