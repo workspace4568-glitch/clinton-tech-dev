@@ -227,36 +227,57 @@ def admin_settings():
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
                     if field == 'logo': logo_url = fname
                     else:               fav_url  = fname
-            execute(conn, """
-                UPDATE site_settings SET
-                    site_name=?, tagline=?, theme=?, color_scheme=?,
-                    logo_url=?, favicon_url=?, footer_text=?,
-                    contact_email=?, contact_phone=?, contact_address=?, contact_hours=?,
-                    meta_title=?, meta_description=?,
-                    animations_enabled=?, announcement_bar_enabled=?,
-                    announcement_text=?, announcement_link=?,
-                    maintenance_mode=?, maintenance_message=?,
-                    button_style=?, button_radius=?,
-                    container_max_width=?, container_justify=?,
-                    nav_style=?,
-                    font_heading=?, font_body=?, font_mono=?,
-                    hero_position=?, hero_height=?
-                WHERE id=1
-            """, (
-                f.get('site_name',''), f.get('tagline',''),
-                f.get('theme','bold-studio'), f.get('color_scheme','crimson-black'),
-                logo_url, fav_url, f.get('footer_text',''),
-                f.get('contact_email',''), f.get('contact_phone',''),
-                f.get('contact_address',''), f.get('contact_hours',''),
-                f.get('meta_title',''), f.get('meta_description',''),
-                anim, ann, f.get('announcement_text',''), f.get('announcement_link',''),
-                maint, f.get('maintenance_message',''),
-                f.get('button_style','solid'), int(f.get('button_radius', 6)),
-                int(f.get('container_max_width', 1200)), f.get('container_justify','center'),
-                f.get('nav_style','slide-right'),
-                f.get('font_heading',''), f.get('font_body',''), f.get('font_mono',''),
-                f.get('hero_position','relative'), f.get('hero_height','screen')
-            ))
+
+            p = _p()
+            fields = {
+                'site_name':               f.get('site_name',''),
+                'tagline':                 f.get('tagline',''),
+                'theme':                   f.get('theme','bold-studio'),
+                'color_scheme':            f.get('color_scheme','crimson-black'),
+                'logo_url':                logo_url,
+                'favicon_url':             fav_url,
+                'footer_text':             f.get('footer_text',''),
+                'contact_email':           f.get('contact_email',''),
+                'contact_phone':           f.get('contact_phone',''),
+                'contact_address':         f.get('contact_address',''),
+                'contact_hours':           f.get('contact_hours',''),
+                'meta_title':              f.get('meta_title',''),
+                'meta_description':        f.get('meta_description',''),
+                'animations_enabled':      anim,
+                'announcement_bar_enabled':ann,
+                'announcement_text':       f.get('announcement_text',''),
+                'announcement_link':       f.get('announcement_link',''),
+                'maintenance_mode':        maint,
+                'maintenance_message':     f.get('maintenance_message',''),
+                'button_style':            f.get('button_style','solid'),
+                'button_radius':           int(f.get('button_radius', 6)),
+                'container_max_width':     int(f.get('container_max_width', 1200)),
+                'container_justify':       f.get('container_justify','center'),
+                'nav_style':               f.get('nav_style','slide-right'),
+                'font_heading':            f.get('font_heading',''),
+                'font_body':               f.get('font_body',''),
+                'font_mono':               f.get('font_mono',''),
+                'hero_position':           f.get('hero_position','relative'),
+                'hero_height':             f.get('hero_height','screen'),
+            }
+
+            cur = conn.cursor()
+            # Fetch actual row id — safe for both SQLite (id=1) and PostgreSQL SERIAL
+            cur.execute("SELECT id FROM site_settings LIMIT 1")
+            row = cur.fetchone()
+            if row:
+                row_id = row['id'] if hasattr(row, 'keys') else row[0]
+                set_clause = ', '.join(f"{k}={p}" for k in fields)
+                vals = list(fields.values()) + [row_id]
+                cur.execute(f"UPDATE site_settings SET {set_clause} WHERE id={p}", vals)
+            else:
+                keys = ', '.join(fields.keys())
+                placeholders = ', '.join([p] * len(fields))
+                cur.execute(
+                    f"INSERT INTO site_settings ({keys}) VALUES ({placeholders})",
+                    list(fields.values())
+                )
+
             flash('Settings saved!', 'success')
             return redirect(url_for('admin_settings'))
         return render_template('admin/settings.html', s=s, themes=THEMES, schemes=COLOR_SCHEMES)
