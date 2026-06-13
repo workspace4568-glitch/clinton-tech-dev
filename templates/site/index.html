@@ -1,69 +1,80 @@
 {% extends 'site/base.html' %}
 {% block content %}
 
-<style>
-.portfolio-card:hover .port-hover-overlay { opacity:0.88 !important; }
-.portfolio-card:hover .portfolio-img i:first-child { transform:scale(0.85) translateY(-8px); opacity:0 !important; }
-</style>
+{% set _hh = s.hero_height or 'screen' %}
 
 {% for sec in sections %}
+
+{# ══════════════════════════════════════════════════════ #}
+{#  HERO                                                  #}
+{# ══════════════════════════════════════════════════════ #}
 {% if sec.type == 'hero' %}
-<!-- HERO -->
-<section class="hero" id="home" {% if sec.image_url and not (s.theme == 'bold-studio') %}style="background-image: url('/uploads/{{ sec.image_url }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"{% endif %}>
-    {% if sec.image_url and s.theme != 'bold-studio' %}<div style="position:absolute;inset:0;background:linear-gradient(to right,var(--bg) 55%,rgba(0,0,0,0.3));pointer-events:none;"></div>{% endif %}
 
-    {% if s.theme == 'bold-studio' and sec.image_url %}
-    {# BOLD STUDIO: Two-column split layout with image panel #}
-    <div class="container" style="display:grid;grid-template-columns:1fr 1fr;gap:0;max-width:100%;padding:0;position:relative;">
-        <div class="hero-content" style="padding:80px 60px;">
-            <div class="hero-eyebrow"><i class="fa-solid fa-code"></i> Web Developer</div>
-            <h1>{{ sec.heading }}</h1>
-            <span class="hero-accent-line"></span>
-            <p>{{ sec.subheading }}</p>
-            {% if sec.content %}<p style="color:var(--text-muted);">{{ sec.content }}</p>{% endif %}
-            <div class="hero-actions">
-                {% if sec.button_text %}
-                <a href="{{ sec.button_link or '#' }}" class="btn btn-primary"
-                   {% if sec.get('button_new_tab') %}target="_blank" rel="noopener noreferrer"{% endif %}>
-                    <i class="fa-solid fa-arrow-right"></i> {{ sec.button_text }}
-                </a>
-                {% endif %}
-                <a href="#contact" class="btn btn-outline"><i class="fa-solid fa-envelope"></i> Get In Touch</a>
-            </div>
+{% if s.theme == 'bold-studio' and sec.image_url %}
+{# ── Bold Studio: full-width split ── #}
+<section class="hero h-{{ _hh }}" id="home" style="min-height:inherit;padding:0;">
+  <div class="hero-split" style="min-height:inherit;">
+    <div class="hero-split-text">
+      <div>
+        <div class="hero-eyebrow"><i class="fa-solid fa-code"></i> Web Developer</div>
+        <h1>{{ sec.heading }}</h1>
+        <span class="hero-accent-line"></span>
+        <p>{{ sec.subheading }}</p>
+        {% if sec.content %}<p style="color:var(--text-muted);font-size:0.95rem;margin-bottom:24px;">{{ sec.content }}</p>{% endif %}
+        <div class="hero-actions">
+          {% if sec.button_text %}
+          <a href="{{ sec.button_link or '#' }}" class="btn btn-primary"{% if sec.get('button_new_tab') %} target="_blank" rel="noopener noreferrer"{% endif %}>
+            <i class="fa-solid fa-arrow-right"></i> {{ sec.button_text }}
+          </a>
+          {% endif %}
+          <a href="#contact" class="btn btn-outline"><i class="fa-solid fa-envelope"></i> Get In Touch</a>
         </div>
-        <div style="overflow:hidden;min-height:80vh;background:var(--primary);">
-            <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt or sec.heading }}"
-                 style="width:100%;height:100%;object-fit:cover;display:block;mix-blend-mode:multiply;opacity:0.92;">
-        </div>
+      </div>
     </div>
-
-    {% else %}
-    {# ALL OTHER THEMES #}
-    <div class="container" style="position:relative;">
-        <div class="hero-content">
-            <div class="hero-eyebrow"><i class="fa-solid fa-code"></i> Web Developer</div>
-            <h1>{{ sec.heading }}</h1>
-            <span class="hero-accent-line"></span>
-            <p>{{ sec.subheading }}</p>
-            {% if sec.content %}<p style="color:var(--text-muted);">{{ sec.content }}</p>{% endif %}
-            <div class="hero-actions">
-                {% if sec.button_text %}
-                <a href="{{ sec.button_link or '#' }}" class="btn btn-primary"
-                   {% if sec.get('button_new_tab') %}target="_blank" rel="noopener noreferrer"{% endif %}>
-                    <i class="fa-solid fa-arrow-right"></i> {{ sec.button_text }}
-                </a>
-                {% endif %}
-                <a href="#contact" class="btn btn-outline">
-                    <i class="fa-solid fa-envelope"></i> Get In Touch
-                </a>
-            </div>
-        </div>
+    <div class="hero-split-img">
+      <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt or sec.heading }}"
+           style="mix-blend-mode:multiply;opacity:0.92;" loading="eager">
     </div>
-    {% endif %}
+  </div>
 </section>
 
+{% else %}
+{# ── All other themes: bg-image hero ── #}
+<section class="hero h-{{ _hh }}" id="home"
+  {% if sec.image_url %}
+  style="background-image:url('/uploads/{{ sec.image_url }}');background-size:cover;background-position:center;background-repeat:no-repeat;"
+  {% endif %}>
+
+  {% if sec.image_url %}
+  <div class="hero-overlay" style="background:linear-gradient(to right,var(--bg) 50%,rgba(0,0,0,0.15));"></div>
+  {% endif %}
+
+  <div class="hero-content-wrap">
+    <div class="container">
+      <div class="hero-content" style="max-width:600px;">
+        <div class="hero-eyebrow animate-on-scroll"><i class="fa-solid fa-code"></i> Web Developer</div>
+        <h1 class="animate-on-scroll">{{ sec.heading }}</h1>
+        <span class="hero-accent-line"></span>
+        <p class="animate-on-scroll">{{ sec.subheading }}</p>
+        {% if sec.content %}<p class="animate-on-scroll" style="color:var(--text-muted);font-size:0.95rem;margin-bottom:24px;">{{ sec.content }}</p>{% endif %}
+        <div class="hero-actions animate-on-scroll">
+          {% if sec.button_text %}
+          <a href="{{ sec.button_link or '#' }}" class="btn btn-primary"{% if sec.get('button_new_tab') %} target="_blank" rel="noopener noreferrer"{% endif %}>
+            <i class="fa-solid fa-arrow-right"></i> {{ sec.button_text }}
+          </a>
+          {% endif %}
+          <a href="#contact" class="btn btn-outline"><i class="fa-solid fa-envelope"></i> Get In Touch</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ══════════════════════════════════════════════════════ #}
+{#  SERVICES                                              #}
+{# ══════════════════════════════════════════════════════ #}
 {% elif sec.type == 'services' %}
-<!-- SERVICES -->
 {% set _overlay = (sec.image_overlay or 0)|float %}
 {% set _blur    = (sec.image_blur or 0)|int %}
 {% set _pos     = sec.image_position or 'center' %}
@@ -72,304 +83,384 @@
 {% set _iborder = sec.icon_border or 'none' %}
 {% set _ihover  = sec.icon_hover or 'zoom' %}
 {% set _istyle  = sec.icon_style or 'default' %}
-<section id="services"
-    style="{% if sec.image_url %}position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};background-attachment:fixed;{% if _blur > 0 %}filter:blur(0);{% endif %}{% else %}background:var(--text)04;{% endif %}">
-    {% if sec.image_url %}
-    <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
-    {% endif %}
-    <div class="container" style="position:relative;z-index:1;">
-        <p class="section-label animate-on-scroll"><i class="fa-solid fa-gears"></i> Services</p>
-        <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
-        <p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>
 
-        <style>
-        /* ── Icon style variants ── */
-        .svc-icon-wrap { display:flex; align-items:center; justify-content:center;
-            width:72px; height:72px; margin-bottom:20px; transition:all 0.35s cubic-bezier(0.23,1,0.32,1);
-            position:relative; overflow:hidden; flex-shrink:0; }
-        /* Border styles */
-        .svc-icon-wrap.border-rounded  { border-radius:50%; }
-        .svc-icon-wrap.border-square   { border-radius:4px; }
-        .svc-icon-wrap.border-squircle { border-radius:22px; }
-        .svc-icon-wrap.border-none     { border-radius:16px; }
-        /* Icon style variants */
-        .svc-icon-wrap.style-default  { background:var(--primary)18; }
-        .svc-icon-wrap.style-solid    { background:var(--primary); }
-        .svc-icon-wrap.style-outline  { background:transparent; border:2px solid var(--primary); }
-        .svc-icon-wrap.style-ghost    { background:transparent; }
-        .svc-icon-wrap.style-glass    { background:rgba(255,255,255,0.1); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); }
-        .svc-icon-wrap.style-shadow   { background:var(--bg); box-shadow:0 8px 24px rgba(0,0,0,0.15); }
-        /* Icon image inside wrap */
-        .svc-icon-wrap img { width:100%; height:100%; object-fit:cover; border-radius:inherit; transition:all 0.35s; }
-        .svc-icon-wrap i   { font-size:1.8rem; color:var(--primary); transition:all 0.35s; }
-        .svc-icon-wrap.style-solid i  { color:#fff; }
-        .svc-icon-wrap.style-ghost i  { color:var(--primary); }
-        /* Hover animations */
-        .service-card:hover .svc-icon-wrap.hover-zoom    { transform:scale(1.15); }
-        .service-card:hover .svc-icon-wrap.hover-rotate  { transform:rotate(15deg) scale(1.05); }
-        .service-card:hover .svc-icon-wrap.hover-bounce  { animation:iconBounce 0.5s ease; }
-        .service-card:hover .svc-icon-wrap.hover-flip    { transform:rotateY(180deg); }
-        .service-card:hover .svc-icon-wrap.hover-shake   { animation:iconShake 0.4s ease; }
-        .service-card:hover .svc-icon-wrap.hover-pulse   { animation:iconPulse 0.6s ease; }
-        .service-card:hover .svc-icon-wrap.hover-glow    { box-shadow:0 0 24px var(--primary)60, 0 0 48px var(--primary)30; }
-        .service-card:hover .svc-icon-wrap.hover-spin    { transform:rotate(360deg); }
-        .service-card:hover .svc-icon-wrap.hover-none    { transform:none; }
-        @keyframes iconBounce { 0%{transform:translateY(0)} 30%{transform:translateY(-12px)} 60%{transform:translateY(-4px)} 80%{transform:translateY(-8px)} 100%{transform:translateY(0)} }
-        @keyframes iconShake  { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)} }
-        @keyframes iconPulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
-        </style>
+<section id="services" class="svc-section-{{ sec.id }}"
+  {% if sec.image_url %}
+  style="position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};"
+  {% else %}
+  style="background:var(--surface);"
+  {% endif %}>
+  {% if sec.image_url %}
+  <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
+  {% endif %}
 
-        <div class="services-grid stagger-parent">
-            {% for card in service_cards %}
-            <div class="service-card stagger-child">
-                <div class="svc-icon-wrap style-{{ _istyle }} border-{{ _iborder }} hover-{{ _ihover }}">
-                    <i class="{{ card.icon }}"></i>
-                </div>
-                <h3>{{ card.title }}</h3>
-                <p>{{ card.description }}</p>
-            </div>
-            {% endfor %}
+  {% set _spd = {'fast':'100ms','normal':'220ms','slow':'400ms'}.get(sec.card_transition_speed or 'normal','220ms') %}
+  {% set _hc  = sec.card_hover_color or '' %}
+  {% set _hfc = sec.card_hover_font_color or '' %}
+  {% set _ic  = sec.icon_color or '' %}
+  {% set _ch  = sec.card_hover or 'lift' %}
+  <style>
+  .svc-section-{{ sec.id }} .svc-icon-wrap { display:flex;align-items:center;justify-content:center;width:clamp(52px,8vw,72px);height:clamp(52px,8vw,72px);margin-bottom:16px;transition:all {{ _spd }} cubic-bezier(0.23,1,0.32,1);position:relative;overflow:hidden;flex-shrink:0; }
+  .svc-section-{{ sec.id }} .svc-icon-wrap.border-rounded  { border-radius:50%; }
+  .svc-section-{{ sec.id }} .svc-icon-wrap.border-square   { border-radius:4px; }
+  .svc-section-{{ sec.id }} .svc-icon-wrap.border-squircle { border-radius:22px; }
+  .svc-section-{{ sec.id }} .svc-icon-wrap.border-none     { border-radius:16px; }
+  .svc-section-{{ sec.id }} .svc-icon-wrap.style-default   { background:var(--primary)18; }
+  .svc-section-{{ sec.id }} .svc-icon-wrap.style-solid     { background:var(--primary); }
+  .svc-section-{{ sec.id }} .svc-icon-wrap.style-outline   { background:transparent;border:2px solid var(--primary); }
+  .svc-section-{{ sec.id }} .svc-icon-wrap.style-ghost     { background:transparent; }
+  .svc-section-{{ sec.id }} .svc-icon-wrap.style-glass     { background:rgba(255,255,255,0.1);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2); }
+  .svc-section-{{ sec.id }} .svc-icon-wrap.style-shadow    { background:var(--bg);box-shadow:0 8px 24px rgba(0,0,0,0.15); }
+  .svc-section-{{ sec.id }} .svc-icon-wrap i               { font-size:clamp(1.3rem,3vw,1.8rem);color:{{ _ic or 'var(--primary)' }};transition:all {{ _spd }}; }
+  .svc-section-{{ sec.id }} .svc-icon-wrap.style-solid i   { color:#fff; }
+
+  /* Card base transition */
+  .svc-section-{{ sec.id }} .service-card { transition:all {{ _spd }} cubic-bezier(0.23,1,0.32,1); }
+
+  /* Card hover effect: {{ _ch }} */
+  {% if _ch == 'lift' %}
+  .svc-section-{{ sec.id }} .service-card:hover { transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,0,0,0.14); {% if _hc %}background:{{ _hc }};{% endif %} {% if _hfc %}color:{{ _hfc }};{% endif %} }
+  {% elif _ch == 'scale' %}
+  .svc-section-{{ sec.id }} .service-card:hover { transform:scale(1.04); box-shadow:0 8px 32px rgba(0,0,0,0.14); {% if _hc %}background:{{ _hc }};{% endif %} {% if _hfc %}color:{{ _hfc }};{% endif %} }
+  {% elif _ch == 'glow' %}
+  .svc-section-{{ sec.id }} .service-card:hover { box-shadow:0 0 0 2px var(--primary),0 8px 32px var(--primary)30; {% if _hc %}background:{{ _hc }};{% endif %} {% if _hfc %}color:{{ _hfc }};{% endif %} }
+  {% elif _ch == 'border' %}
+  .svc-section-{{ sec.id }} .service-card:hover { border-color:var(--primary); {% if _hc %}background:{{ _hc }};{% endif %} {% if _hfc %}color:{{ _hfc }};{% endif %} }
+  {% elif _ch == 'shadow' %}
+  .svc-section-{{ sec.id }} .service-card:hover { box-shadow:0 24px 60px rgba(0,0,0,0.22);transform:translateY(-3px); {% if _hc %}background:{{ _hc }};{% endif %} {% if _hfc %}color:{{ _hfc }};{% endif %} }
+  {% elif _ch == 'tilt' %}
+  .svc-section-{{ sec.id }} .service-card:hover { transform:rotate(-2deg) translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,0.14); {% if _hc %}background:{{ _hc }};{% endif %} {% if _hfc %}color:{{ _hfc }};{% endif %} }
+  {% elif _ch == 'fill' %}
+  .svc-section-{{ sec.id }} .service-card:hover { background:{{ _hc or 'var(--primary)' }};border-color:transparent;{% if _hfc %}color:{{ _hfc }};{% endif %}transform:translateY(-3px); }
+  .svc-section-{{ sec.id }} .service-card:hover p { color:{{ _hfc or 'inherit' }}; }
+  {% elif _ch == 'underline' %}
+  .svc-section-{{ sec.id }} .service-card { border-bottom:3px solid transparent; }
+  .svc-section-{{ sec.id }} .service-card:hover { border-bottom-color:var(--primary); {% if _hc %}background:{{ _hc }};{% endif %} {% if _hfc %}color:{{ _hfc }};{% endif %} }
+  {% else %}
+  .svc-section-{{ sec.id }} .service-card:hover { transform:none; }
+  {% endif %}
+
+  {% if _hfc %}
+  .svc-section-{{ sec.id }} .service-card:hover h3,
+  .svc-section-{{ sec.id }} .service-card:hover p { color:{{ _hfc }}; }
+  .svc-section-{{ sec.id }} .service-card:hover .svc-icon-wrap i { color:{{ _hfc }}; }
+  {% endif %}
+
+  /* Icon hover animations */
+  .svc-section-{{ sec.id }} .service-card:hover .svc-icon-wrap.hover-zoom   { transform:scale(1.15); }
+  .svc-section-{{ sec.id }} .service-card:hover .svc-icon-wrap.hover-rotate { transform:rotate(15deg) scale(1.05); }
+  .svc-section-{{ sec.id }} .service-card:hover .svc-icon-wrap.hover-bounce { animation:iconBounce 0.5s ease; }
+  .svc-section-{{ sec.id }} .service-card:hover .svc-icon-wrap.hover-flip   { transform:rotateY(180deg); }
+  .svc-section-{{ sec.id }} .service-card:hover .svc-icon-wrap.hover-shake  { animation:iconShake 0.4s ease; }
+  .svc-section-{{ sec.id }} .service-card:hover .svc-icon-wrap.hover-pulse  { animation:iconPulse 0.6s ease; }
+  .svc-section-{{ sec.id }} .service-card:hover .svc-icon-wrap.hover-glow   { box-shadow:0 0 24px var(--primary)60,0 0 48px var(--primary)30; }
+  .svc-section-{{ sec.id }} .service-card:hover .svc-icon-wrap.hover-spin   { transform:rotate(360deg); }
+  </style>
+
+  <div class="container" style="position:relative;z-index:1;">
+    <p class="section-label animate-on-scroll"><i class="fa-solid fa-gears"></i> Services</p>
+    <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
+    {% if sec.subheading %}<p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>{% endif %}
+    <div class="services-grid stagger-parent">
+      {% for card in service_cards %}
+      <div class="service-card stagger-child">
+        <div class="svc-icon-wrap style-{{ _istyle }} border-{{ _iborder }} hover-{{ _ihover }}">
+          <i class="{{ card.icon }}"></i>
         </div>
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.description }}</p>
+      </div>
+      {% endfor %}
     </div>
+  </div>
 </section>
 
+{# ══════════════════════════════════════════════════════ #}
+{#  ABOUT                                                 #}
+{# ══════════════════════════════════════════════════════ #}
 {% elif sec.type == 'about' %}
-<!-- ABOUT -->
-{% set _overlay = (sec.image_overlay or 0)|float %}
-{% set _blur    = (sec.image_blur or 0)|int %}
-{% set _pos     = sec.image_position or 'center' %}
-{% set _sz      = sec.image_size or 'cover' %}
-{% set _ocolor  = sec.image_overlay_color or '#000000' %}
 <section id="about">
-    <div class="container" style="position:relative;z-index:1;">
-        <div class="about-split">
-            <div class="about-img-wrap animate-on-scroll fade-left">
-                {% if sec.image_url %}
-                <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt or 'About' }}">
-                {% else %}
-                <i class="fa-solid fa-user-tie"></i>
-                {% endif %}
-            </div>
-            <div class="about-text animate-on-scroll fade-right">
-                <p class="section-label"><i class="fa-solid fa-user"></i> About</p>
-                <h2 class="section-heading">{{ sec.heading }}</h2>
-                <p class="section-sub" style="margin-bottom:0;">{{ sec.subheading }}</p>
-                <div class="content-body" style="margin-top:16px;">{{ sec.content | safe }}</div>
-                <div class="stat-row">
-                    <div class="stat-item"><div class="stat-num">50+</div><div class="stat-label">Projects Delivered</div></div>
-                    <div class="stat-item"><div class="stat-num">5+</div><div class="stat-label">Years Experience</div></div>
-                    <div class="stat-item"><div class="stat-num">98%</div><div class="stat-label">Client Satisfaction</div></div>
-                </div>
-                {% if sec.button_text %}
-                <div style="margin-top:32px;">
-                    <a href="{{ sec.button_link or '#contact' }}" class="btn btn-primary" {% if sec.get('button_new_tab') %}target="_blank" rel="noopener noreferrer"{% endif %}>
-                        <i class="fa-solid fa-arrow-right"></i> {{ sec.button_text }}
-                    </a>
-                </div>
-                {% endif %}
-            </div>
+  <div class="container">
+    <div class="about-split">
+      <div class="about-img-wrap animate-on-scroll fade-left">
+        {% if sec.image_url %}
+        <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt or 'About' }}" loading="lazy">
+        {% else %}
+        <i class="fa-solid fa-user-tie"></i>
+        {% endif %}
+      </div>
+      <div class="animate-on-scroll fade-right">
+        <p class="section-label"><i class="fa-solid fa-user"></i> About</p>
+        <h2 class="section-heading">{{ sec.heading }}</h2>
+        <p class="section-sub" style="margin-bottom:0;">{{ sec.subheading }}</p>
+        <div class="content-body" style="margin-top:14px;">{{ sec.content | safe }}</div>
+        <div class="stat-row">
+          <div class="stat-item"><div class="stat-num">50+</div><div class="stat-label">Projects Delivered</div></div>
+          <div class="stat-item"><div class="stat-num">5+</div><div class="stat-label">Years Experience</div></div>
+          <div class="stat-item"><div class="stat-num">98%</div><div class="stat-label">Client Satisfaction</div></div>
         </div>
+        {% if sec.button_text %}
+        <div style="margin-top:28px;">
+          <a href="{{ sec.button_link or '#contact' }}" class="btn btn-primary"{% if sec.get('button_new_tab') %} target="_blank" rel="noopener noreferrer"{% endif %}>
+            <i class="fa-solid fa-arrow-right"></i> {{ sec.button_text }}
+          </a>
+        </div>
+        {% endif %}
+      </div>
     </div>
+  </div>
 </section>
 
+{# ══════════════════════════════════════════════════════ #}
+{#  PORTFOLIO                                             #}
+{# ══════════════════════════════════════════════════════ #}
 {% elif sec.type == 'portfolio' %}
-<!-- PORTFOLIO -->
 {% set _overlay = (sec.image_overlay or 0)|float %}
 {% set _blur    = (sec.image_blur or 0)|int %}
 {% set _pos     = sec.image_position or 'center' %}
 {% set _sz      = sec.image_size or 'cover' %}
 {% set _ocolor  = sec.image_overlay_color or '#000000' %}
+
 <section id="portfolio"
-    style="{% if sec.image_url %}position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};{% else %}background:var(--text)04;{% endif %}">
-    {% if sec.image_url %}
-    <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
-    {% endif %}
-    <div class="container" style="position:relative;z-index:1;">
-        <p class="section-label animate-on-scroll"><i class="fa-solid fa-briefcase"></i> Work</p>
-        <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
-        <p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>
-        <div class="portfolio-grid stagger-parent">
-            {% for item in portfolio_items %}
-            <div class="portfolio-card stagger-child">
-                {% if item.link %}
-                <a href="{{ item.link }}" {% if item.link_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %} style="display:contents;">
-                {% endif %}
-                <div class="portfolio-img" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary)15,var(--accent)10);position:relative;overflow:hidden;">
-                    <i class="{{ item.icon }}" style="font-size:3rem;color:var(--primary);opacity:0.7;transition:all 0.4s cubic-bezier(0.23,1,0.32,1);"></i>
-                    <div style="position:absolute;inset:0;background:var(--primary);opacity:0;transition:opacity 0.35s;display:flex;align-items:center;justify-content:center;" class="port-hover-overlay">
-                        <i class="fa-solid {% if item.link %}fa-arrow-up-right-from-square{% else %}fa-eye{% endif %}" style="color:#fff;font-size:1.8rem;"></i>
-                    </div>
-                </div>
-                <div class="portfolio-info">
-                    <h3>{{ item.title }}</h3>
-                    <p>{{ item.description }}</p>
-                </div>
-                {% if item.link %}</a>{% endif %}
-            </div>
-            {% endfor %}
+  {% if sec.image_url %}
+  style="position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};"
+  {% else %}
+  style="background:var(--surface);"
+  {% endif %}>
+  {% if sec.image_url %}
+  <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
+  {% endif %}
+  <div class="container" style="position:relative;z-index:1;">
+    <p class="section-label animate-on-scroll"><i class="fa-solid fa-briefcase"></i> Work</p>
+    <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
+    {% if sec.subheading %}<p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>{% endif %}
+    <div class="portfolio-grid stagger-parent">
+      {% for item in portfolio_items %}
+      <div class="portfolio-card stagger-child">
+        {% if item.link %}<a href="{{ item.link }}"{% if item.link_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %} style="display:contents;">{% endif %}
+        <div class="portfolio-img" style="background:linear-gradient(135deg,var(--primary)15,var(--accent)10);">
+          <i class="{{ item.icon }}" style="font-size:clamp(2rem,5vw,3rem);color:var(--primary);opacity:0.7;transition:all 0.4s;"></i>
+          <div class="port-hover-overlay">
+            <i class="fa-solid {% if item.link %}fa-arrow-up-right-from-square{% else %}fa-eye{% endif %}" style="color:#fff;font-size:1.6rem;"></i>
+          </div>
         </div>
-        <div style="text-align:center; margin-top:48px;">
-            <a href="#contact" class="btn btn-outline">
-                <i class="fa-solid fa-envelope"></i> Start Your Project
-            </a>
+        <div class="portfolio-body">
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.description }}</p>
         </div>
+        {% if item.link %}</a>{% endif %}
+      </div>
+      {% endfor %}
     </div>
+    <div style="text-align:center;margin-top:44px;">
+      <a href="#contact" class="btn btn-outline"><i class="fa-solid fa-envelope"></i> Start Your Project</a>
+    </div>
+  </div>
 </section>
 
+{# ══════════════════════════════════════════════════════ #}
+{#  CONTACT                                               #}
+{# ══════════════════════════════════════════════════════ #}
 {% elif sec.type == 'contact' %}
-<!-- CONTACT -->
 {% set _overlay = (sec.image_overlay or 0.92)|float %}
 {% set _blur    = (sec.image_blur or 0)|int %}
 {% set _pos     = sec.image_position or 'center' %}
 {% set _sz      = sec.image_size or 'cover' %}
 {% set _ocolor  = sec.image_overlay_color or '#000000' %}
-<section id="contact" class="contact-section" {% if sec.image_url %}style="position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};"{% endif %}>
-    {% if sec.image_url %}<div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>{% endif %}
-    <div class="container" style="position:relative;z-index:1;">
-        <p class="section-label animate-on-scroll"><i class="fa-solid fa-envelope"></i> Contact</p>
-        <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
-        <p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>
-        <div class="contact-grid">
-            {% if s.contact_email %}
-            <form class="contact-form animate-on-scroll" action="mailto:{{ s.contact_email }}" method="POST" enctype="text/plain">
-            {% else %}
-            <form class="contact-form animate-on-scroll" onsubmit="return false;">
-            {% endif %}
-                <div class="form-group">
-                    <label>Your Name</label>
-                    <input type="text" name="name" placeholder="John Smith" required>
-                </div>
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" name="email" placeholder="john@example.com" required>
-                </div>
-                <div class="form-group">
-                    <label>Project Type</label>
-                    <select name="project">
-                        <option>Static Website</option>
-                        <option>Web Application</option>
-                        <option>E-Commerce Store</option>
-                        <option>Redesign</option>
-                        <option>Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Message</label>
-                    <textarea name="message" placeholder="Tell me about your project..." required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary" style="align-self:flex-start;">
-                    <i class="fa-solid fa-paper-plane"></i> Send Message
-                </button>
-            </form>
-            <div class="animate-on-scroll fade-right">
-                <div class="contact-info-item">
-                    <i class="fa-solid fa-envelope"></i>
-                    <div><strong>Email</strong><br><span>{{ s.contact_email or 'hello@clintontech.dev' }}</span></div>
-                </div>
-                <div class="contact-info-item">
-                    <i class="fa-solid fa-phone"></i>
-                    <div><strong>Phone</strong><br><span>{{ s.contact_phone or '+1 (555) 000-0000' }}</span></div>
-                </div>
-                <div class="contact-info-item">
-                    <i class="fa-solid fa-location-dot"></i>
-                    <div><strong>Location</strong><br><span>{{ s.contact_address or 'Remote / Worldwide' }}</span></div>
-                </div>
-                <div class="contact-info-item">
-                    <i class="fa-solid fa-clock"></i>
-                    <div><strong>Availability</strong><br><span>{{ s.contact_hours or 'Mon-Fri, 9am-6pm' }}</span></div>
-                </div>
-                <div style="margin-top:32px;">
-                    <p class="footer-heading">Follow Me</p>
-                    <div class="social-row">
-                        {% for social in socials %}
-                        <a href="{{ social.url }}" class="social-btn" target="_blank" aria-label="{{ social.platform }}">
-                            <i class="{{ social.icon }}"></i>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
+
+<section id="contact"
+  {% if sec.image_url %}
+  style="position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};"
+  {% endif %}>
+  {% if sec.image_url %}
+  <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
+  {% endif %}
+  <div class="container" style="position:relative;z-index:1;">
+    <p class="section-label animate-on-scroll"><i class="fa-solid fa-envelope"></i> Contact</p>
+    <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
+    {% if sec.subheading %}<p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>{% endif %}
+    <div class="contact-grid">
+      {% if s.contact_email %}
+      <form class="contact-form animate-on-scroll" action="mailto:{{ s.contact_email }}" method="POST" enctype="text/plain">
+      {% else %}
+      <form class="contact-form animate-on-scroll" onsubmit="return false;">
+      {% endif %}
+        <div class="form-group">
+          <label for="cf-name">Your Name</label>
+          <input type="text" id="cf-name" name="name" placeholder="Jane Smith" required autocomplete="name">
         </div>
+        <div class="form-group">
+          <label for="cf-email">Email Address</label>
+          <input type="email" id="cf-email" name="email" placeholder="jane@example.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="cf-project">Project Type</label>
+          <select id="cf-project" name="project">
+            <option>Static Website</option>
+            <option>Web Application</option>
+            <option>E-Commerce Store</option>
+            <option>Redesign</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cf-msg">Message</label>
+          <textarea id="cf-msg" name="message" placeholder="Tell me about your project…" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="align-self:flex-start;">
+          <i class="fa-solid fa-paper-plane"></i> Send Message
+        </button>
+      </form>
+
+      <div class="animate-on-scroll fade-right">
+        {% if s.contact_email %}
+        <div class="contact-info-item">
+          <i class="fa-solid fa-envelope"></i>
+          <div><strong>Email</strong><span>{{ s.contact_email }}</span></div>
+        </div>
+        {% endif %}
+        {% if s.contact_phone %}
+        <div class="contact-info-item">
+          <i class="fa-solid fa-phone"></i>
+          <div><strong>Phone</strong><span>{{ s.contact_phone }}</span></div>
+        </div>
+        {% endif %}
+        {% if s.contact_address %}
+        <div class="contact-info-item">
+          <i class="fa-solid fa-location-dot"></i>
+          <div><strong>Location</strong><span>{{ s.contact_address }}</span></div>
+        </div>
+        {% endif %}
+        {% if s.contact_hours %}
+        <div class="contact-info-item">
+          <i class="fa-solid fa-clock"></i>
+          <div><strong>Availability</strong><span>{{ s.contact_hours }}</span></div>
+        </div>
+        {% endif %}
+        {% if socials %}
+        <div style="margin-top:28px;">
+          <p class="footer-heading">Connect</p>
+          <div class="social-row">
+            {% for social in socials %}
+            <a href="{{ social.url }}" class="social-btn" target="_blank" rel="noopener noreferrer" aria-label="{{ social.platform }}">
+              <i class="{{ social.icon }}"></i>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
     </div>
+  </div>
 </section>
 
+{# ══════════════════════════════════════════════════════ #}
+{#  GENERIC CONTENT                                       #}
+{# ══════════════════════════════════════════════════════ #}
 {% elif sec.type == 'content' %}
-<!-- GENERIC CONTENT -->
 <section>
-    <div class="container">
-        {% if sec.heading %}<h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>{% endif %}
-        {% if sec.subheading %}<p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>{% endif %}
-        {% if sec.image_url %}
-        <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt }}"
-             style="border-radius: var(--radius); margin-bottom: 32px; max-height: 400px; width: 100%; object-fit: cover;">
-        {% endif %}
-        <div class="content-body animate-on-scroll">{{ sec.content | safe }}</div>
-        {% if sec.button_text %}
-        <div style="margin-top:28px;">
-            <a href="{{ sec.button_link or '#' }}" class="btn btn-primary" {% if sec.get('button_new_tab') %}target="_blank" rel="noopener noreferrer"{% endif %}>
-                <i class="fa-solid fa-arrow-right"></i> {{ sec.button_text }}
-            </a>
-        </div>
-        {% endif %}
+  <div class="container">
+    {% if sec.heading %}<h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>{% endif %}
+    {% if sec.subheading %}<p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>{% endif %}
+    {% if sec.image_url %}
+    <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt }}" loading="lazy"
+         style="border-radius:var(--radius,6px);margin-bottom:28px;max-height:400px;width:100%;object-fit:cover;">
+    {% endif %}
+    <div class="content-body animate-on-scroll">{{ sec.content | safe }}</div>
+    {% if sec.button_text %}
+    <div style="margin-top:24px;">
+      <a href="{{ sec.button_link or '#' }}" class="btn btn-primary"{% if sec.get('button_new_tab') %} target="_blank" rel="noopener noreferrer"{% endif %}>
+        <i class="fa-solid fa-arrow-right"></i> {{ sec.button_text }}
+      </a>
     </div>
+    {% endif %}
+  </div>
 </section>
 {% endif %}
 {% endfor %}
 
+{# ══════════════════════════════════════════════════════ #}
+{#  INITIATIVES / CTAs                                    #}
+{# ══════════════════════════════════════════════════════ #}
 {% if initiatives %}
-<!-- INITIATIVES / CTAs -->
-<section style="background: var(--text)04;">
-    <div class="container">
-        <p class="section-label animate-on-scroll"><i class="fa-solid fa-star"></i> Initiatives</p>
-        <h2 class="section-heading animate-on-scroll">What I Offer</h2>
+<section style="background:var(--surface);">
+  <div class="container">
+    <p class="section-label animate-on-scroll"><i class="fa-solid fa-star"></i> Initiatives</p>
+    <h2 class="section-heading animate-on-scroll">What I Offer</h2>
 
-        <style>
-        .init-icon-wrap { display:flex; align-items:center; justify-content:center;
-            width:72px; height:72px; margin-bottom:20px; transition:all 0.35s cubic-bezier(0.23,1,0.32,1);
-            position:relative; overflow:hidden; flex-shrink:0; }
-        .init-icon-wrap.border-rounded  { border-radius:50%; }
-        .init-icon-wrap.border-square   { border-radius:4px; }
-        .init-icon-wrap.border-squircle { border-radius:22px; }
-        .init-icon-wrap.border-none     { border-radius:16px; }
-        .init-icon-wrap.style-default  { background:var(--primary)18; }
-        .init-icon-wrap.style-solid    { background:var(--primary); }
-        .init-icon-wrap.style-outline  { background:transparent; border:2px solid var(--primary); }
-        .init-icon-wrap.style-ghost    { background:transparent; }
-        .init-icon-wrap.style-glass    { background:rgba(255,255,255,0.1); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); }
-        .init-icon-wrap.style-shadow   { background:var(--bg); box-shadow:0 8px 24px rgba(0,0,0,0.15); }
-        .init-icon-wrap i { font-size:1.8rem; color:var(--primary); transition:all 0.35s; }
-        .init-icon-wrap.style-solid i  { color:#fff; }
-        .init-card:hover .init-icon-wrap.hover-zoom    { transform:scale(1.15); }
-        .init-card:hover .init-icon-wrap.hover-rotate  { transform:rotate(15deg) scale(1.05); }
-        .init-card:hover .init-icon-wrap.hover-bounce  { animation:iconBounce 0.5s ease; }
-        .init-card:hover .init-icon-wrap.hover-flip    { transform:rotateY(180deg); }
-        .init-card:hover .init-icon-wrap.hover-shake   { animation:iconShake 0.4s ease; }
-        .init-card:hover .init-icon-wrap.hover-pulse   { animation:iconPulse 0.6s ease; }
-        .init-card:hover .init-icon-wrap.hover-glow    { box-shadow:0 0 24px var(--primary)60, 0 0 48px var(--primary)30; }
-        .init-card:hover .init-icon-wrap.hover-spin    { transform:rotate(360deg); }
-        .init-card:hover .init-icon-wrap.hover-none    { transform:none; }
-        </style>
+    <style>
+    .init-icon-wrap { display:flex;align-items:center;justify-content:center;width:clamp(52px,8vw,72px);height:clamp(52px,8vw,72px);margin-bottom:16px;transition:all 0.35s cubic-bezier(0.23,1,0.32,1);position:relative;overflow:hidden;flex-shrink:0; }
+    .init-icon-wrap.border-rounded  { border-radius:50%; }
+    .init-icon-wrap.border-square   { border-radius:4px; }
+    .init-icon-wrap.border-squircle { border-radius:22px; }
+    .init-icon-wrap.border-none     { border-radius:16px; }
+    .init-icon-wrap.style-default   { background:var(--primary)18; }
+    .init-icon-wrap.style-solid     { background:var(--primary); }
+    .init-icon-wrap.style-outline   { background:transparent;border:2px solid var(--primary); }
+    .init-icon-wrap.style-ghost     { background:transparent; }
+    .init-icon-wrap.style-glass     { background:rgba(255,255,255,0.1);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2); }
+    .init-icon-wrap.style-shadow    { background:var(--bg);box-shadow:0 8px 24px rgba(0,0,0,0.15); }
+    .init-icon-wrap i               { font-size:clamp(1.3rem,3vw,1.8rem);color:var(--primary);transition:all 0.35s; }
+    .init-icon-wrap.style-solid i   { color:#fff; }
+    .init-card:hover .init-icon-wrap.hover-zoom   { transform:scale(1.15); }
+    .init-card:hover .init-icon-wrap.hover-rotate { transform:rotate(15deg) scale(1.05); }
+    .init-card:hover .init-icon-wrap.hover-bounce { animation:iconBounce 0.5s ease; }
+    .init-card:hover .init-icon-wrap.hover-flip   { transform:rotateY(180deg); }
+    .init-card:hover .init-icon-wrap.hover-shake  { animation:iconShake 0.4s ease; }
+    .init-card:hover .init-icon-wrap.hover-pulse  { animation:iconPulse 0.6s ease; }
+    .init-card:hover .init-icon-wrap.hover-glow   { box-shadow:0 0 24px var(--primary)60,0 0 48px var(--primary)30; }
+    .init-card:hover .init-icon-wrap.hover-spin   { transform:rotate(360deg); }
+    .init-card:hover .init-icon-wrap.hover-none   { transform:none; }
+    </style>
 
-        <div class="initiatives-grid stagger-parent">
-            {% for init in initiatives %}
-            {% set _istyle = init.get('icon_style') or 'default' %}
-            {% set _iborder = init.get('icon_border') or 'none' %}
-            {% set _ihover = init.get('icon_hover') or 'zoom' %}
-            <div class="init-card stagger-child">
-                <div class="init-icon-wrap style-{{ _istyle }} border-{{ _iborder }} hover-{{ _ihover }}">
-                    <i class="{{ init.icon }}"></i>
-                </div>
-                <h3>{{ init.title }}</h3>
-                <p>{{ init.description }}</p>
-                <a href="{{ init.button_link }}" class="btn" {% if init.get('button_new_tab') %}target="_blank" rel="noopener noreferrer"{% endif %}>
-                    <i class="fa-solid fa-arrow-right"></i> {{ init.button_text }}
-                </a>
-            </div>
-            {% endfor %}
+    <div class="initiatives-grid stagger-parent">
+      {% for init in initiatives %}
+      {% set _istyle = init.get('icon_style') or 'default' %}
+      {% set _iborder = init.get('icon_border') or 'none' %}
+      {% set _ihover = init.get('icon_hover') or 'zoom' %}
+      {% set _ic    = init.get('icon_color') or '' %}
+      {% set _ch    = init.get('card_hover') or 'lift' %}
+      {% set _hc    = init.get('card_hover_color') or '' %}
+      {% set _hfc   = init.get('card_hover_font_color') or '' %}
+      {% set _spd   = {'fast':'100ms','normal':'220ms','slow':'400ms'}.get(init.get('card_transition_speed') or 'normal','220ms') %}
+      <style>
+      .init-card-{{ init.id }} { transition:all {{ _spd }} cubic-bezier(0.23,1,0.32,1); }
+      .init-card-{{ init.id }} .init-icon-wrap { transition:all {{ _spd }} cubic-bezier(0.23,1,0.32,1); }
+      .init-card-{{ init.id }} .init-icon-wrap i { color:{{ _ic or 'var(--primary)' }};transition:all {{ _spd }}; }
+      .init-card-{{ init.id }} .init-icon-wrap.style-solid i { color:#fff; }
+      {% if _ch == 'lift' %}.init-card-{{ init.id }}:hover { transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,0.14);{% if _hc %}background:{{ _hc }};{% endif %}{% if _hfc %}color:{{ _hfc }};{% endif %} }
+      {% elif _ch == 'scale' %}.init-card-{{ init.id }}:hover { transform:scale(1.04);box-shadow:0 8px 32px rgba(0,0,0,0.14);{% if _hc %}background:{{ _hc }};{% endif %}{% if _hfc %}color:{{ _hfc }};{% endif %} }
+      {% elif _ch == 'glow' %}.init-card-{{ init.id }}:hover { box-shadow:0 0 0 2px var(--primary),0 8px 32px var(--primary)30;{% if _hc %}background:{{ _hc }};{% endif %}{% if _hfc %}color:{{ _hfc }};{% endif %} }
+      {% elif _ch == 'border' %}.init-card-{{ init.id }}:hover { border-color:var(--primary);{% if _hc %}background:{{ _hc }};{% endif %}{% if _hfc %}color:{{ _hfc }};{% endif %} }
+      {% elif _ch == 'shadow' %}.init-card-{{ init.id }}:hover { box-shadow:0 24px 60px rgba(0,0,0,0.22);transform:translateY(-3px);{% if _hc %}background:{{ _hc }};{% endif %}{% if _hfc %}color:{{ _hfc }};{% endif %} }
+      {% elif _ch == 'tilt' %}.init-card-{{ init.id }}:hover { transform:rotate(-2deg) translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,0.14);{% if _hc %}background:{{ _hc }};{% endif %}{% if _hfc %}color:{{ _hfc }};{% endif %} }
+      {% elif _ch == 'fill' %}.init-card-{{ init.id }}:hover { background:{{ _hc or 'var(--primary)' }};border-color:transparent;{% if _hfc %}color:{{ _hfc }};{% endif %}transform:translateY(-3px); }
+      {% elif _ch == 'underline' %}.init-card-{{ init.id }} { border-bottom:3px solid transparent; }.init-card-{{ init.id }}:hover { border-bottom-color:var(--primary);{% if _hc %}background:{{ _hc }};{% endif %}{% if _hfc %}color:{{ _hfc }};{% endif %} }
+      {% endif %}
+      {% if _hfc %}.init-card-{{ init.id }}:hover h3,.init-card-{{ init.id }}:hover p { color:{{ _hfc }}; }.init-card-{{ init.id }}:hover .init-icon-wrap i { color:{{ _hfc }}; }{% endif %}
+      .init-card-{{ init.id }}:hover .init-icon-wrap.hover-zoom   { transform:scale(1.15); }
+      .init-card-{{ init.id }}:hover .init-icon-wrap.hover-rotate { transform:rotate(15deg) scale(1.05); }
+      .init-card-{{ init.id }}:hover .init-icon-wrap.hover-bounce { animation:iconBounce 0.5s ease; }
+      .init-card-{{ init.id }}:hover .init-icon-wrap.hover-flip   { transform:rotateY(180deg); }
+      .init-card-{{ init.id }}:hover .init-icon-wrap.hover-shake  { animation:iconShake 0.4s ease; }
+      .init-card-{{ init.id }}:hover .init-icon-wrap.hover-pulse  { animation:iconPulse 0.6s ease; }
+      .init-card-{{ init.id }}:hover .init-icon-wrap.hover-glow   { box-shadow:0 0 24px var(--primary)60,0 0 48px var(--primary)30; }
+      .init-card-{{ init.id }}:hover .init-icon-wrap.hover-spin   { transform:rotate(360deg); }
+      </style>
+      <div class="init-card stagger-child init-card-{{ init.id }}">
+        <div class="init-icon-wrap style-{{ _istyle }} border-{{ _iborder }} hover-{{ _ihover }}">
+          <i class="{{ init.icon }}"></i>
         </div>
+        <h3>{{ init.title }}</h3>
+        <p>{{ init.description }}</p>
+        <a href="{{ init.button_link }}" class="btn btn-outline"{% if init.get('button_new_tab') %} target="_blank" rel="noopener noreferrer"{% endif %}>
+          <i class="fa-solid fa-arrow-right"></i> {{ init.button_text }}
+        </a>
+      </div>
+      {% endfor %}
     </div>
+  </div>
 </section>
 {% endif %}
 
 {% endblock %}
-
