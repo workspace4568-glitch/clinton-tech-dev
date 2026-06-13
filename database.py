@@ -78,7 +78,12 @@ _SQLITE_SCHEMA = """
         font_body TEXT DEFAULT '',
         font_mono TEXT DEFAULT '',
         hero_position TEXT DEFAULT 'relative',
-        hero_height TEXT DEFAULT 'screen'
+        hero_height TEXT DEFAULT 'screen',
+        logo_border_radius TEXT DEFAULT '50',
+        logo_border_width INTEGER DEFAULT 0,
+        logo_border_color TEXT DEFAULT '',
+        logo_bg_color TEXT DEFAULT '',
+        logo_show_name INTEGER DEFAULT 0
     );
     CREATE TABLE IF NOT EXISTS pages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -187,6 +192,9 @@ _PG_TABLES = [
         container_max_width INTEGER DEFAULT 1200, container_justify TEXT DEFAULT 'center',
         nav_style TEXT DEFAULT 'slide-right',
         hero_position TEXT DEFAULT 'relative', hero_height TEXT DEFAULT 'screen',
+        logo_border_radius TEXT DEFAULT '50', logo_border_width INTEGER DEFAULT 0,
+        logo_border_color TEXT DEFAULT '', logo_bg_color TEXT DEFAULT '',
+        logo_show_name INTEGER DEFAULT 0,
         font_heading TEXT DEFAULT '', font_body TEXT DEFAULT '', font_mono TEXT DEFAULT '')""",
     """CREATE TABLE IF NOT EXISTS pages (
         id SERIAL PRIMARY KEY, title TEXT, slug TEXT UNIQUE,
@@ -277,6 +285,20 @@ def _migrate(conn):
         ("site_settings", "font_mono",           "TEXT DEFAULT ''"),
         ("site_settings", "container_max_width", "INTEGER DEFAULT 1200"),
         ("site_settings", "container_justify",   "TEXT DEFAULT 'center'"),
+        # logo styling
+        ("site_settings", "logo_border_radius",  "TEXT DEFAULT '50'"),
+        ("site_settings", "logo_border_width",   "INTEGER DEFAULT 0"),
+        ("site_settings", "logo_border_color",   "TEXT DEFAULT ''"),
+        ("site_settings", "logo_bg_color",       "TEXT DEFAULT ''"),
+        ("site_settings", "logo_show_name",      "INTEGER DEFAULT 0"),
+        # sections columns missing from UPDATE query
+        ("sections", "section_bg_color",         "TEXT DEFAULT ''"),
+        ("sections", "bg_attachment",            "TEXT DEFAULT 'scroll'"),
+        ("sections", "icon_color",               "TEXT DEFAULT ''"),
+        ("sections", "card_hover",               "TEXT DEFAULT 'lift'"),
+        ("sections", "card_hover_color",         "TEXT DEFAULT ''"),
+        ("sections", "card_hover_font_color",    "TEXT DEFAULT ''"),
+        ("sections", "card_transition_speed",    "TEXT DEFAULT 'normal'"),
     ]
     for table, col, col_def in migrations:
         if USE_POSTGRES:
