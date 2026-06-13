@@ -326,6 +326,13 @@ def admin_update_section(section_id):
         enabled   = 1 if 'enabled' in f else 0
         btn_new_tab = 1 if 'button_new_tab' in f else 0
         image_url = sec['image_url']
+        # Remove image if checkbox ticked
+        if f.get('remove_image') == '1':
+            old_path = os.path.join(app.config['UPLOAD_FOLDER'], image_url) if image_url else None
+            if old_path and os.path.exists(old_path) and not image_url.startswith('default-'):
+                os.remove(old_path)
+            image_url = ''
+        # Upload new image (overrides remove if both happen)
         file = request.files.get('image')
         if file and file.filename and allowed_file(file.filename):
             fname = secure_filename(f"sec_{section_id}_{file.filename}")
