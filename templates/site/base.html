@@ -492,7 +492,16 @@
     <div class="nav-inner">
       <a href="/" class="nav-brand" aria-label="{{ s.site_name }} home">
         {% if s.logo_url %}
-          <img src="/uploads/{{ s.logo_url }}" alt="{{ s.site_name }}" loading="lazy">
+          <img src="/uploads/{{ s.logo_url }}" alt="{{ s.site_name }}" loading="lazy"
+            style="
+              border-radius: {{ s.logo_border_radius or '50' }}%;
+              {% if s.logo_border_width and s.logo_border_width|int > 0 %}
+                border: {{ s.logo_border_width }}px solid {{ s.logo_border_color or 'currentColor' }};
+              {% endif %}
+              {% if s.logo_bg_color %}background: {{ s.logo_bg_color }};{% endif %}
+              padding: {% if s.logo_bg_color or (s.logo_border_width and s.logo_border_width|int > 0) %}4px{% else %}0{% endif %};
+            ">
+          {% if s.logo_show_name %}<span class="nav-brand-name">{{ s.site_name }}</span>{% endif %}
         {% else %}
           <span class="nav-brand-name">{{ s.site_name }}</span>
         {% endif %}
