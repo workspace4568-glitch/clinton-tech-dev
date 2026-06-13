@@ -84,14 +84,14 @@
 {% set _ihover  = sec.icon_hover or 'zoom' %}
 {% set _istyle  = sec.icon_style or 'default' %}
 
+{% set _sbg  = sec.section_bg_color or '' %}
+{% set _batt = sec.bg_attachment or 'scroll' %}
 <section id="services" class="svc-section-{{ sec.id }}"
-  {% if sec.image_url %}
-  style="position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};"
-  {% else %}
-  style="background:var(--surface);"
-  {% endif %}>
+  style="position:relative;{% if sec.image_url %}background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};background-attachment:{{ _batt }};background-repeat:no-repeat;{% elif _sbg %}background:{{ _sbg }};{% else %}background:var(--surface);{% endif %}">
   {% if sec.image_url %}
   <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
+  {% elif _sbg %}
+  {# solid bg — no overlay needed #}
   {% endif %}
 
   {% set _spd = {'fast':'100ms','normal':'220ms','slow':'400ms'}.get(sec.card_transition_speed or 'normal','220ms') %}
@@ -179,7 +179,8 @@
 {#  ABOUT                                                 #}
 {# ══════════════════════════════════════════════════════ #}
 {% elif sec.type == 'about' %}
-<section id="about">
+{% set _sbg = sec.section_bg_color or '' %}
+<section id="about" {% if _sbg %}style="background:{{ _sbg }};"{% endif %}>
   <div class="container">
     <div class="about-split">
       <div class="about-img-wrap animate-on-scroll fade-left">
@@ -221,12 +222,10 @@
 {% set _sz      = sec.image_size or 'cover' %}
 {% set _ocolor  = sec.image_overlay_color or '#000000' %}
 
+{% set _sbg  = sec.section_bg_color or '' %}
+{% set _batt = sec.bg_attachment or 'scroll' %}
 <section id="portfolio"
-  {% if sec.image_url %}
-  style="position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};"
-  {% else %}
-  style="background:var(--surface);"
-  {% endif %}>
+  style="position:relative;{% if sec.image_url %}background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};background-attachment:{{ _batt }};background-repeat:no-repeat;{% elif _sbg %}background:{{ _sbg }};{% else %}background:var(--surface);{% endif %}">
   {% if sec.image_url %}
   <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
   {% endif %}
@@ -268,10 +267,10 @@
 {% set _sz      = sec.image_size or 'cover' %}
 {% set _ocolor  = sec.image_overlay_color or '#000000' %}
 
+{% set _sbg  = sec.section_bg_color or '' %}
+{% set _batt = sec.bg_attachment or 'scroll' %}
 <section id="contact"
-  {% if sec.image_url %}
-  style="position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};"
-  {% endif %}>
+  style="position:relative;{% if sec.image_url %}background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};background-attachment:{{ _batt }};background-repeat:no-repeat;{% elif _sbg %}background:{{ _sbg }};{% endif %}">
   {% if sec.image_url %}
   <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
   {% endif %}
@@ -358,7 +357,9 @@
 {#  GENERIC CONTENT                                       #}
 {# ══════════════════════════════════════════════════════ #}
 {% elif sec.type == 'content' %}
-<section>
+{% set _sbg  = sec.section_bg_color or '' %}
+{% set _batt = sec.bg_attachment or 'scroll' %}
+<section {% if _sbg %}style="background:{{ _sbg }};"{% endif %}>
   <div class="container">
     {% if sec.heading %}<h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>{% endif %}
     {% if sec.subheading %}<p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>{% endif %}
