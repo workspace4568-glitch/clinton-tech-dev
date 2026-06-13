@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 500" width="1400" height="500">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="500" fill="url(#bg3)"/>
+  <!-- Horizontal lines -->
+  <line x1="0" y1="166" x2="1400" y2="166" stroke="#ffffff06" stroke-width="1"/>
+  <line x1="0" y1="333" x2="1400" y2="333" stroke="#ffffff06" stroke-width="1"/>
+  <!-- Three service icons -->
+  <g transform="translate(233,180)">
+    <rect x="-60" y="-60" width="120" height="120" rx="20" fill="#DC143C" opacity="0.15"/>
+    <text x="0" y="20" text-anchor="middle" font-size="52" fill="#DC143C" opacity="0.8">⚡</text>
+    <text x="0" y="80" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" fill="white" opacity="0.6">Performance</text>
+  </g>
+  <g transform="translate(700,180)">
+    <rect x="-60" y="-60" width="120" height="120" rx="20" fill="#DC143C" opacity="0.15"/>
+    <text x="0" y="20" text-anchor="middle" font-size="52" fill="#DC143C" opacity="0.8">🎨</text>
+    <text x="0" y="80" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" fill="white" opacity="0.6">Design</text>
+  </g>
+  <g transform="translate(1167,180)">
+    <rect x="-60" y="-60" width="120" height="120" rx="20" fill="#DC143C" opacity="0.15"/>
+    <text x="0" y="20" text-anchor="middle" font-size="52" fill="#DC143C" opacity="0.8">🚀</text>
+    <text x="0" y="80" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" fill="white" opacity="0.6">Launch</text>
+  </g>
+  <!-- Dividers -->
+  <line x1="466" y1="100" x2="466" y2="400" stroke="#ffffff08" stroke-width="1"/>
+  <line x1="933" y1="100" x2="933" y2="400" stroke="#ffffff08" stroke-width="1"/>
+  <!-- Label -->
+  <text x="700" y="430" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#DC143C" letter-spacing="4" opacity="0.8">SERVICES BANNER — Upload your own image</text>
+</svg>

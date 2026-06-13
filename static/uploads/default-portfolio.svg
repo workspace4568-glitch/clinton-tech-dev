@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 520" width="1400" height="520">
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a"/>
+      <stop offset="100%" style="stop-color:#1a1a1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="520" fill="url(#bg4)"/>
+  <!-- Fake browser windows -->
+  <rect x="40" y="60" width="380" height="240" rx="10" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <rect x="40" y="60" width="380" height="32" rx="10" fill="#2a2a2a"/>
+  <circle cx="65" cy="76" r="6" fill="#ff5f57"/>
+  <circle cx="84" cy="76" r="6" fill="#ffbd2e"/>
+  <circle cx="103" cy="76" r="6" fill="#28c940"/>
+  <rect x="56" y="110" width="350" height="16" rx="3" fill="#333"/>
+  <rect x="56" y="136" width="280" height="12" rx="3" fill="#2a2a2a"/>
+  <rect x="56" y="158" width="310" height="12" rx="3" fill="#2a2a2a"/>
+  <rect x="56" y="220" width="120" height="34" rx="6" fill="#DC143C" opacity="0.8"/>
+
+  <rect x="460" y="60" width="380" height="240" rx="10" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <rect x="460" y="60" width="380" height="32" rx="10" fill="#2a2a2a"/>
+  <circle cx="485" cy="76" r="6" fill="#ff5f57"/>
+  <circle cx="504" cy="76" r="6" fill="#ffbd2e"/>
+  <circle cx="523" cy="76" r="6" fill="#28c940"/>
+  <rect x="476" y="110" width="350" height="140" rx="6" fill="#DC143C" opacity="0.12"/>
+  <text x="651" y="195" text-anchor="middle" font-size="42" fill="#DC143C" opacity="0.4">📊</text>
+
+  <rect x="880" y="60" width="480" height="240" rx="10" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <rect x="880" y="60" width="480" height="32" rx="10" fill="#2a2a2a"/>
+  <circle cx="905" cy="76" r="6" fill="#ff5f57"/>
+  <circle cx="924" cy="76" r="6" fill="#ffbd2e"/>
+  <circle cx="943" cy="76" r="6" fill="#28c940"/>
+  <rect x="896" y="110" width="200" height="170" rx="6" fill="#2a2a2a"/>
+  <rect x="1108" y="110" width="236" height="80" rx="6" fill="#2a2a2a"/>
+  <rect x="1108" y="200" width="236" height="80" rx="6" fill="#DC143C" opacity="0.15"/>
+
+  <!-- Second row -->
+  <rect x="40" y="330" width="580" height="140" rx="10" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <rect x="40" y="330" width="580" height="32" rx="10" fill="#2a2a2a"/>
+  <rect x="640" y="330" width="720" height="140" rx="10" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <rect x="640" y="330" width="720" height="32" rx="10" fill="#DC143C" opacity="0.4"/>
+
+  <text x="700" y="496" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#DC143C" letter-spacing="4" opacity="0.7">PORTFOLIO BANNER — Upload your own image</text>
+</svg>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 900" width="800" height="900">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="900" fill="url(#bg2)" rx="20"/>
+  <!-- Subtle pattern -->
+  <g opacity="0.06" stroke="#DC143C" stroke-width="1" fill="none">
+    <circle cx="400" cy="400" r="150"/>
+    <circle cx="400" cy="400" r="200"/>
+    <circle cx="400" cy="400" r="250"/>
+    <circle cx="400" cy="400" r="300"/>
+  </g>
+  <!-- Avatar circle -->
+  <circle cx="400" cy="340" r="160" fill="#DC143C" opacity="0.15"/>
+  <circle cx="400" cy="340" r="120" fill="#DC143C" opacity="0.2"/>
+  <!-- Person silhouette -->
+  <circle cx="400" cy="295" r="55" fill="#DC143C" opacity="0.7"/>
+  <path d="M230 510 Q400 390 570 510" fill="#DC143C" opacity="0.5"/>
+  <!-- Label -->
+  <text x="400" y="600" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" fill="#DC143C" letter-spacing="4" font-weight="600">ABOUT PHOTO</text>
+  <text x="400" y="640" text-anchor="middle" font-family="system-ui,sans-serif" font-size="16" fill="white" opacity="0.5">Upload your profile image</text>
+  <text x="400" y="668" text-anchor="middle" font-family="system-ui,sans-serif" font-size="16" fill="white" opacity="0.5">in the admin panel</text>
+</svg>
