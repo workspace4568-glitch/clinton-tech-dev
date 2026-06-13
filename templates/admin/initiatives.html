@@ -112,6 +112,89 @@
                 </div>
             </div>
 
+
+            <!-- ── CARD HOVER & COLOUR CONTROLS ── -->
+            <div class="form-group full" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:12px;">
+                <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">
+                    <i class="fa-solid fa-hand-pointer" style="color:var(--primary);margin-right:6px;"></i> Card Hover Effects
+                </p>
+                <div class="form-grid" style="gap:16px;">
+
+                    <div class="form-group full">
+                        <label>Card Hover Effect</label>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;">
+                            {% for val, label, emoji in [
+                                ('lift','Lift Up','⬆️'),('scale','Scale Up','🔍'),
+                                ('glow','Glow','✨'),('border','Border Flash','▣'),
+                                ('shadow','Deep Shadow','🌑'),('tilt','Tilt','↗️'),
+                                ('fill','Fill BG','🎨'),('underline','Underline','▁'),('none','None','⛔'),
+                            ] %}
+                            <label style="border:2px solid {% if (init.get('card_hover') or 'lift') == val %}var(--primary){% else %}var(--border){% endif %};border-radius:6px;padding:10px 6px;text-align:center;cursor:pointer;font-size:0.72rem;font-weight:600;transition:0.15s;"
+                                onclick="this.closest('div').querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)');this.style.borderColor='var(--primary)';">
+                                <input type="radio" name="card_hover" value="{{ val }}" {% if (init.get('card_hover') or 'lift') == val %}checked{% endif %} style="display:none;">
+                                <span style="display:block;font-size:1.1rem;margin-bottom:3px;">{{ emoji }}</span>{{ label }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Card Background on Hover <span style="font-size:0.7rem;color:var(--muted);font-weight:400;">— leave empty = auto</span></label>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <input type="color" name="card_hover_color" value="{{ init.get('card_hover_color') or '#000000' }}"
+                                   style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;"
+                                   oninput="this.nextElementSibling.value=this.value">
+                            <input type="text" value="{{ init.get('card_hover_color') or '' }}" placeholder="leave empty = auto"
+                                   oninput="this.previousElementSibling.value=this.value||'#000000'"
+                                   style="flex:1;">
+                            <button type="button" onclick="clearColorPair(this,'card_hover_color')"
+                                    style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--muted);cursor:pointer;font-size:0.75rem;">Clear</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Font &amp; Icon Colour on Hover <span style="font-size:0.7rem;color:var(--muted);font-weight:400;">— leave empty = auto</span></label>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <input type="color" name="card_hover_font_color" value="{{ init.get('card_hover_font_color') or '#000000' }}"
+                                   style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;"
+                                   oninput="this.nextElementSibling.value=this.value">
+                            <input type="text" value="{{ init.get('card_hover_font_color') or '' }}" placeholder="leave empty = auto"
+                                   oninput="this.previousElementSibling.value=this.value||'#000000'"
+                                   style="flex:1;">
+                            <button type="button" onclick="clearColorPair(this,'card_hover_font_color')"
+                                    style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--muted);cursor:pointer;font-size:0.75rem;">Clear</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Icon Colour <span style="font-size:0.7rem;color:var(--muted);font-weight:400;">— leave empty = accent</span></label>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <input type="color" name="icon_color" value="{{ init.get('icon_color') or '#000000' }}"
+                                   style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;"
+                                   oninput="this.nextElementSibling.value=this.value">
+                            <input type="text" value="{{ init.get('icon_color') or '' }}" placeholder="leave empty = primary"
+                                   oninput="this.previousElementSibling.value=this.value||'#000000'"
+                                   style="flex:1;">
+                            <button type="button" onclick="clearColorPair(this,'icon_color')"
+                                    style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--muted);cursor:pointer;font-size:0.75rem;">Clear</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Transition Speed</label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                            {% for val, label in [('fast','Fast'),('normal','Normal'),('slow','Slow')] %}
+                            <label style="border:2px solid {% if (init.get('card_transition_speed') or 'normal') == val %}var(--primary){% else %}var(--border){% endif %};border-radius:6px;padding:8px;text-align:center;cursor:pointer;font-size:0.78rem;font-weight:600;transition:0.15s;"
+                                onclick="this.closest('div').querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)');this.style.borderColor='var(--primary)';">
+                                <input type="radio" name="card_transition_speed" value="{{ val }}" {% if (init.get('card_transition_speed') or 'normal') == val %}checked{% endif %} style="display:none;">
+                                {{ label }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         <div style="margin-top:16px;">
             <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> Save</button>
         </div>
@@ -203,6 +286,13 @@
 
 {% block scripts %}
 <script>
+function clearColorPair(btn, name) {
+    const form = btn.closest('form');
+    const colorInput = form.querySelector('input[type="color"][name="' + name + '"]');
+    const textInput = btn.previousElementSibling;
+    if (colorInput) colorInput.value = '#000000';
+    if (textInput) textInput.value = '';
+}
 function detectExternalAny(input) {
     const val = input.value.trim();
     const isExternal = val.startsWith('http://') || val.startsWith('https://');
