@@ -128,8 +128,6 @@
                 <h3>{{ card.title }}</h3>
                 <p>{{ card.description }}</p>
             </div>
-            {% else %}
-            <p style="color:var(--text-muted);grid-column:1/-1;">No service cards added yet. Add some in the admin panel.</p>
             {% endfor %}
         </div>
     </div>
@@ -208,8 +206,6 @@
                 </div>
                 {% if item.link %}</a>{% endif %}
             </div>
-            {% else %}
-            <p style="color:var(--text-muted);grid-column:1/-1;">No portfolio items added yet. Add some in the admin panel.</p>
             {% endfor %}
         </div>
         <div style="text-align:center; margin-top:48px;">
@@ -237,7 +233,7 @@
             {% if s.contact_email %}
             <form class="contact-form animate-on-scroll" action="mailto:{{ s.contact_email }}" method="POST" enctype="text/plain">
             {% else %}
-            <form class="contact-form animate-on-scroll" onsubmit="alert('Please set a contact email in the admin settings first.'); return false;">
+            <form class="contact-form animate-on-scroll" onsubmit="return false;">
             {% endif %}
                 <div class="form-group">
                     <label>Your Name</label>
@@ -376,3 +372,4 @@
 {% endif %}
 
 {% endblock %}
+
