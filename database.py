@@ -265,6 +265,18 @@ def _migrate(conn):
         ("initiatives", "icon_style",       "TEXT DEFAULT 'default'"),
         ("initiatives", "icon_border",      "TEXT DEFAULT 'none'"),
         ("initiatives", "icon_hover",       "TEXT DEFAULT 'zoom'"),
+        # site_settings columns added in later versions
+        ("site_settings", "button_style",        "TEXT DEFAULT 'solid'"),
+        ("site_settings", "button_radius",       "INTEGER DEFAULT 6"),
+        ("site_settings", "contact_hours",       "TEXT DEFAULT ''"),
+        ("site_settings", "hero_position",       "TEXT DEFAULT 'relative'"),
+        ("site_settings", "hero_height",         "TEXT DEFAULT 'screen'"),
+        ("site_settings", "nav_style",           "TEXT DEFAULT 'slide-right'"),
+        ("site_settings", "font_heading",        "TEXT DEFAULT ''"),
+        ("site_settings", "font_body",           "TEXT DEFAULT ''"),
+        ("site_settings", "font_mono",           "TEXT DEFAULT ''"),
+        ("site_settings", "container_max_width", "INTEGER DEFAULT 1200"),
+        ("site_settings", "container_justify",   "TEXT DEFAULT 'center'"),
     ]
     for table, col, col_def in migrations:
         if USE_POSTGRES:
