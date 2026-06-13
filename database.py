@@ -76,7 +76,9 @@ _SQLITE_SCHEMA = """
         nav_style TEXT DEFAULT 'slide-right',
         font_heading TEXT DEFAULT '',
         font_body TEXT DEFAULT '',
-        font_mono TEXT DEFAULT ''
+        font_mono TEXT DEFAULT '',
+        hero_position TEXT DEFAULT 'relative',
+        hero_height TEXT DEFAULT 'screen'
     );
     CREATE TABLE IF NOT EXISTS pages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -105,6 +107,11 @@ _SQLITE_SCHEMA = """
         icon_style TEXT DEFAULT 'default',
         icon_border TEXT DEFAULT 'none',
         icon_hover TEXT DEFAULT 'zoom',
+        icon_color TEXT DEFAULT '',
+        card_hover TEXT DEFAULT 'lift',
+        card_hover_color TEXT DEFAULT '',
+        card_hover_font_color TEXT DEFAULT '',
+        card_transition_speed TEXT DEFAULT 'normal',
         button_text TEXT DEFAULT '',
         button_link TEXT DEFAULT '',
         button_new_tab INTEGER DEFAULT 0
@@ -135,7 +142,12 @@ _SQLITE_SCHEMA = """
         enabled INTEGER DEFAULT 1,
         icon_style TEXT DEFAULT 'default',
         icon_border TEXT DEFAULT 'none',
-        icon_hover TEXT DEFAULT 'zoom'
+        icon_hover TEXT DEFAULT 'zoom',
+        icon_color TEXT DEFAULT '',
+        card_hover TEXT DEFAULT 'lift',
+        card_hover_color TEXT DEFAULT '',
+        card_hover_font_color TEXT DEFAULT '',
+        card_transition_speed TEXT DEFAULT 'normal'
     );
     CREATE TABLE IF NOT EXISTS service_cards (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -172,6 +184,7 @@ _PG_TABLES = [
         button_style TEXT DEFAULT 'solid', button_radius INTEGER DEFAULT 6,
         container_max_width INTEGER DEFAULT 1200, container_justify TEXT DEFAULT 'center',
         nav_style TEXT DEFAULT 'slide-right',
+        hero_position TEXT DEFAULT 'relative', hero_height TEXT DEFAULT 'screen',
         font_heading TEXT DEFAULT '', font_body TEXT DEFAULT '', font_mono TEXT DEFAULT '')""",
     """CREATE TABLE IF NOT EXISTS pages (
         id SERIAL PRIMARY KEY, title TEXT, slug TEXT UNIQUE,
