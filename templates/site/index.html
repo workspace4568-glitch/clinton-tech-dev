@@ -1,6 +1,11 @@
 {% extends 'site/base.html' %}
 {% block content %}
 
+<style>
+.portfolio-card:hover .port-hover-overlay { opacity:0.88 !important; }
+.portfolio-card:hover .portfolio-img i:first-child { transform:scale(0.85) translateY(-8px); opacity:0 !important; }
+</style>
+
 {% for sec in sections %}
 {% if sec.type == 'hero' %}
 <!-- HERO -->
@@ -143,11 +148,7 @@
 {% set _pos     = sec.image_position or 'center' %}
 {% set _sz      = sec.image_size or 'cover' %}
 {% set _ocolor  = sec.image_overlay_color or '#000000' %}
-<section id="about"
-    style="{% if sec.image_url %}position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};{% endif %}">
-    {% if sec.image_url %}
-    <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
-    {% endif %}
+<section id="about">
     <div class="container" style="position:relative;z-index:1;">
         <div class="about-split">
             <div class="about-img-wrap animate-on-scroll fade-left">
@@ -226,10 +227,6 @@
         </div>
     </div>
 </section>
-<style>
-.portfolio-card:hover .port-hover-overlay { opacity:0.88 !important; }
-.portfolio-card:hover .portfolio-img i:first-child { transform:scale(0.85) translateY(-8px); opacity:0 !important; }
-</style>
 
 {% elif sec.type == 'contact' %}
 <!-- CONTACT -->
@@ -245,7 +242,11 @@
         <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
         <p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>
         <div class="contact-grid">
+            {% if s.contact_email %}
             <form class="contact-form animate-on-scroll" action="mailto:{{ s.contact_email }}" method="POST" enctype="text/plain">
+            {% else %}
+            <form class="contact-form animate-on-scroll" onsubmit="alert('Please set a contact email in the admin settings first.'); return false;">
+            {% endif %}
                 <div class="form-group">
                     <label>Your Name</label>
                     <input type="text" name="name" placeholder="John Smith" required>
@@ -331,7 +332,7 @@
 <!-- INITIATIVES / CTAs -->
 <section style="background: var(--text)04;">
     <div class="container">
-        <p class="section-label animate-on-scroll"><i class="fa-solid fa-star"></i> Services</p>
+        <p class="section-label animate-on-scroll"><i class="fa-solid fa-star"></i> Initiatives</p>
         <h2 class="section-heading animate-on-scroll">What I Offer</h2>
         <div class="initiatives-grid stagger-parent">
             {% for init in initiatives %}
