@@ -437,6 +437,13 @@
   .stagger-parent .stagger-child.visible { opacity: 1; transform: none; }
   {% endif %}
 
+
+  /* iOS Safari doesn't support background-attachment:fixed — override to scroll */
+  @supports (-webkit-touch-callout: none) {
+    section[style*="background-attachment:fixed"] {
+      background-attachment: scroll !important;
+    }
+  }
   @keyframes iconBounce { 0%,100%{transform:translateY(0)} 30%{transform:translateY(-12px)} 60%{transform:translateY(-4px)} 80%{transform:translateY(-8px)} }
   @keyframes iconShake  { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)} }
   @keyframes iconPulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
