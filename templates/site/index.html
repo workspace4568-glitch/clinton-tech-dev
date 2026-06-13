@@ -59,56 +59,96 @@
 
 {% elif sec.type == 'services' %}
 <!-- SERVICES -->
-<section id="services" style="background: var(--text)04;">
-    <div class="container">
+{% set _overlay = (sec.image_overlay or 0)|string %}
+{% set _blur    = (sec.image_blur or 0)|string %}
+{% set _pos     = sec.image_position or 'center' %}
+{% set _sz      = sec.image_size or 'cover' %}
+{% set _ocolor  = sec.image_overlay_color or '#000000' %}
+{% set _iborder = sec.icon_border or 'none' %}
+{% set _ihover  = sec.icon_hover or 'zoom' %}
+{% set _istyle  = sec.icon_style or 'default' %}
+<section id="services"
+    style="{% if sec.image_url %}position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};background-attachment:fixed;{% if _blur > 0 %}filter:blur(0);{% endif %}{% else %}background:var(--text)04;{% endif %}">
+    {% if sec.image_url %}
+    <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
+    {% endif %}
+    <div class="container" style="position:relative;z-index:1;">
         <p class="section-label animate-on-scroll"><i class="fa-solid fa-gears"></i> Services</p>
         <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
         <p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>
-        {% if sec.image_url %}
-        <div class="animate-on-scroll" style="border-radius:var(--radius);overflow:hidden;margin-bottom:40px;max-height:320px;">
-            <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt or sec.heading }}"
-                 style="width:100%;height:320px;object-fit:cover;">
-        </div>
-        {% endif %}
+
+        <style>
+        /* ── Icon style variants ── */
+        .svc-icon-wrap { display:flex; align-items:center; justify-content:center;
+            width:72px; height:72px; margin-bottom:20px; transition:all 0.35s cubic-bezier(0.23,1,0.32,1);
+            position:relative; overflow:hidden; flex-shrink:0; }
+        /* Border styles */
+        .svc-icon-wrap.border-rounded  { border-radius:50%; }
+        .svc-icon-wrap.border-square   { border-radius:4px; }
+        .svc-icon-wrap.border-squircle { border-radius:22px; }
+        .svc-icon-wrap.border-none     { border-radius:16px; }
+        /* Icon style variants */
+        .svc-icon-wrap.style-default  { background:var(--primary)18; }
+        .svc-icon-wrap.style-solid    { background:var(--primary); }
+        .svc-icon-wrap.style-outline  { background:transparent; border:2px solid var(--primary); }
+        .svc-icon-wrap.style-ghost    { background:transparent; }
+        .svc-icon-wrap.style-glass    { background:rgba(255,255,255,0.1); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); }
+        .svc-icon-wrap.style-shadow   { background:var(--bg); box-shadow:0 8px 24px rgba(0,0,0,0.15); }
+        /* Icon image inside wrap */
+        .svc-icon-wrap img { width:100%; height:100%; object-fit:cover; border-radius:inherit; transition:all 0.35s; }
+        .svc-icon-wrap i   { font-size:1.8rem; color:var(--primary); transition:all 0.35s; }
+        .svc-icon-wrap.style-solid i  { color:#fff; }
+        .svc-icon-wrap.style-ghost i  { color:var(--primary); }
+        /* Hover animations */
+        .service-card:hover .svc-icon-wrap.hover-zoom    { transform:scale(1.15); }
+        .service-card:hover .svc-icon-wrap.hover-rotate  { transform:rotate(15deg) scale(1.05); }
+        .service-card:hover .svc-icon-wrap.hover-bounce  { animation:iconBounce 0.5s ease; }
+        .service-card:hover .svc-icon-wrap.hover-flip    { transform:rotateY(180deg); }
+        .service-card:hover .svc-icon-wrap.hover-shake   { animation:iconShake 0.4s ease; }
+        .service-card:hover .svc-icon-wrap.hover-pulse   { animation:iconPulse 0.6s ease; }
+        .service-card:hover .svc-icon-wrap.hover-glow    { box-shadow:0 0 24px var(--primary)60, 0 0 48px var(--primary)30; }
+        .service-card:hover .svc-icon-wrap.hover-spin    { transform:rotate(360deg); }
+        .service-card:hover .svc-icon-wrap.hover-none    { transform:none; }
+        @keyframes iconBounce { 0%{transform:translateY(0)} 30%{transform:translateY(-12px)} 60%{transform:translateY(-4px)} 80%{transform:translateY(-8px)} 100%{transform:translateY(0)} }
+        @keyframes iconShake  { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)} }
+        @keyframes iconPulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+        </style>
+
         <div class="services-grid stagger-parent">
+            {% set svc_items = [
+                ('fa-file-code',       'Static Websites',   'Blazing-fast static sites with perfect Lighthouse scores, deployed on CDN for global reach.'),
+                ('fa-server',          'Web Applications',  'Full-stack apps with robust backends, databases, authentication, and APIs.'),
+                ('fa-palette',         'UI/UX Design',      'Pixel-perfect interfaces designed for conversion and exceptional user experience.'),
+                ('fa-cart-shopping',   'E-Commerce',        'Online stores optimized for sales with secure payment processing and inventory management.'),
+                ('fa-mobile-screen',   'Responsive Design', 'Every build is mobile-first, tested across devices for flawless performance everywhere.'),
+                ('fa-rocket',          'Deployment',        'Production-ready deployments on Render, Vercel, Netlify, or your preferred platform.'),
+            ] %}
+            {% for fa_icon, title, desc in svc_items %}
             <div class="service-card stagger-child">
-                <div class="service-icon"><i class="fa-solid fa-file-code"></i></div>
-                <h3>Static Websites</h3>
-                <p>Blazing-fast static sites with perfect Lighthouse scores, deployed on CDN for global reach.</p>
+                <div class="svc-icon-wrap style-{{ _istyle }} border-{{ _iborder }} hover-{{ _ihover }}" data-index="{{ loop.index }}">
+                    <i class="fa-solid {{ fa_icon }}"></i>
+                </div>
+                <h3>{{ title }}</h3>
+                <p>{{ desc }}</p>
             </div>
-            <div class="service-card stagger-child">
-                <div class="service-icon"><i class="fa-solid fa-server"></i></div>
-                <h3>Web Applications</h3>
-                <p>Full-stack apps with robust backends, databases, authentication, and APIs.</p>
-            </div>
-            <div class="service-card stagger-child">
-                <div class="service-icon"><i class="fa-solid fa-palette"></i></div>
-                <h3>UI/UX Design</h3>
-                <p>Pixel-perfect interfaces designed for conversion and exceptional user experience.</p>
-            </div>
-            <div class="service-card stagger-child">
-                <div class="service-icon"><i class="fa-solid fa-cart-shopping"></i></div>
-                <h3>E-Commerce</h3>
-                <p>Online stores optimized for sales with secure payment processing and inventory management.</p>
-            </div>
-            <div class="service-card stagger-child">
-                <div class="service-icon"><i class="fa-solid fa-mobile-screen"></i></div>
-                <h3>Responsive Design</h3>
-                <p>Every build is mobile-first, tested across devices for flawless performance everywhere.</p>
-            </div>
-            <div class="service-card stagger-child">
-                <div class="service-icon"><i class="fa-solid fa-rocket"></i></div>
-                <h3>Deployment & Hosting</h3>
-                <p>Production-ready deployments on Render, Vercel, Netlify, or your preferred platform.</p>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </section>
 
 {% elif sec.type == 'about' %}
 <!-- ABOUT -->
-<section id="about">
-    <div class="container">
+{% set _overlay = (sec.image_overlay or 0)|string %}
+{% set _blur    = (sec.image_blur or 0)|string %}
+{% set _pos     = sec.image_position or 'center' %}
+{% set _sz      = sec.image_size or 'cover' %}
+{% set _ocolor  = sec.image_overlay_color or '#000000' %}
+<section id="about"
+    style="{% if sec.image_url %}position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};{% endif %}">
+    {% if sec.image_url %}
+    <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
+    {% endif %}
+    <div class="container" style="position:relative;z-index:1;">
         <div class="about-split">
             <div class="about-img-wrap animate-on-scroll fade-left">
                 {% if sec.image_url %}
@@ -141,60 +181,43 @@
 
 {% elif sec.type == 'portfolio' %}
 <!-- PORTFOLIO -->
-<section id="portfolio" style="background: var(--text)04;">
-    <div class="container">
+{% set _overlay = (sec.image_overlay or 0)|string %}
+{% set _blur    = (sec.image_blur or 0)|string %}
+{% set _pos     = sec.image_position or 'center' %}
+{% set _sz      = sec.image_size or 'cover' %}
+{% set _ocolor  = sec.image_overlay_color or '#000000' %}
+<section id="portfolio"
+    style="{% if sec.image_url %}position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};{% else %}background:var(--text)04;{% endif %}">
+    {% if sec.image_url %}
+    <div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>
+    {% endif %}
+    <div class="container" style="position:relative;z-index:1;">
         <p class="section-label animate-on-scroll"><i class="fa-solid fa-briefcase"></i> Work</p>
         <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
         <p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>
-        {% if sec.image_url %}
-        <div class="animate-on-scroll" style="border-radius:var(--radius);overflow:hidden;margin-bottom:40px;max-height:360px;">
-            <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt or sec.heading }}"
-                 style="width:100%;height:360px;object-fit:cover;">
-        </div>
-        {% endif %}
         <div class="portfolio-grid stagger-parent">
+            {% set port_items = [
+                ('fa-store',           'E-Commerce Platform',   'Full-stack shop with Stripe payments, inventory system, and admin dashboard.'),
+                ('fa-hospital',        'Medical Clinic Site',   'HIPAA-considerate static site with appointment booking and staff pages.'),
+                ('fa-utensils',        'Restaurant Website',    'Stunning food-focused design with online menu, reservations, and gallery.'),
+                ('fa-scale-balanced',  'Law Firm Site',         'Professional, trust-building presence with practice areas and attorney bios.'),
+                ('fa-graduation-cap',  'University Portal',     'Information architecture for academic departments with event management.'),
+                ('fa-church',          'Church Community Site', 'Sermon archives, event calendar, and donation system for congregation.'),
+            ] %}
+            {% for fa_icon, title, desc in port_items %}
             <div class="portfolio-card stagger-child">
-                <div class="portfolio-img"><i class="fa-solid fa-store"></i></div>
+                <div class="portfolio-img" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary)15,var(--accent)10);position:relative;overflow:hidden;">
+                    <i class="fa-solid {{ fa_icon }}" style="font-size:3rem;color:var(--primary);opacity:0.7;transition:all 0.4s cubic-bezier(0.23,1,0.32,1);"></i>
+                    <div style="position:absolute;inset:0;background:var(--primary);opacity:0;transition:opacity 0.35s;display:flex;align-items:center;justify-content:center;" class="port-hover-overlay">
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="color:#fff;font-size:1.8rem;"></i>
+                    </div>
+                </div>
                 <div class="portfolio-info">
-                    <h3>E-Commerce Platform</h3>
-                    <p>Full-stack shop with Stripe payments, inventory system, and admin dashboard.</p>
+                    <h3>{{ title }}</h3>
+                    <p>{{ desc }}</p>
                 </div>
             </div>
-            <div class="portfolio-card stagger-child">
-                <div class="portfolio-img"><i class="fa-solid fa-hospital"></i></div>
-                <div class="portfolio-info">
-                    <h3>Medical Clinic Site</h3>
-                    <p>HIPAA-considerate static site with appointment booking and staff pages.</p>
-                </div>
-            </div>
-            <div class="portfolio-card stagger-child">
-                <div class="portfolio-img"><i class="fa-solid fa-utensils"></i></div>
-                <div class="portfolio-info">
-                    <h3>Restaurant Website</h3>
-                    <p>Stunning food-focused design with online menu, reservations, and gallery.</p>
-                </div>
-            </div>
-            <div class="portfolio-card stagger-child">
-                <div class="portfolio-img"><i class="fa-solid fa-scale-balanced"></i></div>
-                <div class="portfolio-info">
-                    <h3>Law Firm Site</h3>
-                    <p>Professional, trust-building presence with practice areas and attorney bios.</p>
-                </div>
-            </div>
-            <div class="portfolio-card stagger-child">
-                <div class="portfolio-img"><i class="fa-solid fa-graduation-cap"></i></div>
-                <div class="portfolio-info">
-                    <h3>University Portal</h3>
-                    <p>Information architecture for academic departments with event management.</p>
-                </div>
-            </div>
-            <div class="portfolio-card stagger-child">
-                <div class="portfolio-img"><i class="fa-solid fa-church"></i></div>
-                <div class="portfolio-info">
-                    <h3>Church Community Site</h3>
-                    <p>Sermon archives, event calendar, and donation system for congregation.</p>
-                </div>
-            </div>
+            {% endfor %}
         </div>
         <div style="text-align:center; margin-top:48px;">
             <a href="#contact" class="btn btn-outline">
@@ -203,12 +226,21 @@
         </div>
     </div>
 </section>
+<style>
+.portfolio-card:hover .port-hover-overlay { opacity:0.88 !important; }
+.portfolio-card:hover .portfolio-img i:first-child { transform:scale(0.85) translateY(-8px); opacity:0 !important; }
+</style>
 
 {% elif sec.type == 'contact' %}
 <!-- CONTACT -->
-<section id="contact" class="contact-section" {% if sec.image_url %}style="position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:cover;background-position:center;"{% endif %}>
-    {% if sec.image_url %}<div style="position:absolute;inset:0;background:var(--bg);opacity:0.92;pointer-events:none;"></div>{% endif %}
-    <div class="container" style="position:relative;">
+{% set _overlay = (sec.image_overlay or 0.92)|string %}
+{% set _blur    = (sec.image_blur or 0)|string %}
+{% set _pos     = sec.image_position or 'center' %}
+{% set _sz      = sec.image_size or 'cover' %}
+{% set _ocolor  = sec.image_overlay_color or '#000000' %}
+<section id="contact" class="contact-section" {% if sec.image_url %}style="position:relative;background-image:url('/uploads/{{ sec.image_url }}');background-size:{{ _sz }};background-position:{{ _pos }};"{% endif %}>
+    {% if sec.image_url %}<div style="position:absolute;inset:0;background:{{ _ocolor }};opacity:{{ _overlay }};pointer-events:none;z-index:0;{% if _blur > 0 %}backdrop-filter:blur({{ _blur }}px);{% endif %}"></div>{% endif %}
+    <div class="container" style="position:relative;z-index:1;">
         <p class="section-label animate-on-scroll"><i class="fa-solid fa-envelope"></i> Contact</p>
         <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
         <p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>
