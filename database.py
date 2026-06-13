@@ -97,6 +97,14 @@ _SQLITE_SCHEMA = """
         content TEXT DEFAULT '',
         image_url TEXT DEFAULT '',
         image_alt TEXT DEFAULT '',
+        image_position TEXT DEFAULT 'center',
+        image_size TEXT DEFAULT 'cover',
+        image_overlay REAL DEFAULT 0.0,
+        image_overlay_color TEXT DEFAULT '#000000',
+        image_blur INTEGER DEFAULT 0,
+        icon_style TEXT DEFAULT 'default',
+        icon_border TEXT DEFAULT 'none',
+        icon_hover TEXT DEFAULT 'zoom',
         button_text TEXT DEFAULT '',
         button_link TEXT DEFAULT '',
         button_new_tab INTEGER DEFAULT 0
@@ -152,6 +160,10 @@ _PG_TABLES = [
         type TEXT DEFAULT 'content', ord INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1,
         heading TEXT DEFAULT '', subheading TEXT DEFAULT '', content TEXT DEFAULT '',
         image_url TEXT DEFAULT '', image_alt TEXT DEFAULT '',
+        image_position TEXT DEFAULT 'center', image_size TEXT DEFAULT 'cover',
+        image_overlay REAL DEFAULT 0.0, image_overlay_color TEXT DEFAULT '#000000',
+        image_blur INTEGER DEFAULT 0,
+        icon_style TEXT DEFAULT 'default', icon_border TEXT DEFAULT 'none', icon_hover TEXT DEFAULT 'zoom',
         button_text TEXT DEFAULT '', button_link TEXT DEFAULT '',
         button_new_tab INTEGER DEFAULT 0)""",
     """CREATE TABLE IF NOT EXISTS nav_items (
@@ -188,6 +200,14 @@ def _migrate(conn):
         ("site_settings", "font_heading",         "TEXT DEFAULT ''"),
         ("site_settings", "font_body",            "TEXT DEFAULT ''"),
         ("site_settings", "font_mono",            "TEXT DEFAULT ''"),
+        ("sections", "image_position",      "TEXT DEFAULT 'center'"),
+        ("sections", "image_size",          "TEXT DEFAULT 'cover'"),
+        ("sections", "image_overlay",       "REAL DEFAULT 0.0"),
+        ("sections", "image_overlay_color", "TEXT DEFAULT '#000000'"),
+        ("sections", "image_blur",          "INTEGER DEFAULT 0"),
+        ("sections", "icon_style",          "TEXT DEFAULT 'default'"),
+        ("sections", "icon_border",         "TEXT DEFAULT 'none'"),
+        ("sections", "icon_hover",          "TEXT DEFAULT 'zoom'"),
     ]
     for table, col, col_def in migrations:
         try:
@@ -209,6 +229,27 @@ def _row(r):
 
 def _rows(rs):
     return [dict(r) for r in rs]
+
+# Default values for section fields — ensures templates never crash on missing columns
+_SECTION_DEFAULTS = {
+    'image_url': '', 'image_alt': '',
+    'image_position': 'center', 'image_size': 'cover',
+    'image_overlay': 0.0, 'image_overlay_color': '#000000', 'image_blur': 0,
+    'icon_style': 'default', 'icon_border': 'none', 'icon_hover': 'zoom',
+    'button_text': '', 'button_link': '', 'button_new_tab': 0,
+    'heading': '', 'subheading': '', 'content': '', 'enabled': 1,
+}
+
+def _section(d):
+    """Fill in any missing section keys with safe defaults."""
+    out = dict(_SECTION_DEFAULTS)
+    out.update({k: v for k, v in d.items() if v is not None})
+    # Ensure numeric fields are correct types
+    try: out['image_overlay'] = float(out['image_overlay'] or 0)
+    except: out['image_overlay'] = 0.0
+    try: out['image_blur'] = int(out['image_blur'] or 0)
+    except: out['image_blur'] = 0
+    return out
 
 def get_settings(conn):
     cur = conn.cursor()
@@ -250,7 +291,7 @@ def get_sections(conn, page_id, enabled_only=False):
     if enabled_only: q += " AND enabled=1"
     q += " ORDER BY ord"
     cur.execute(q, (page_id,))
-    return _rows(cur.fetchall())
+    return [_section(dict(r)) for r in cur.fetchall()]
 
 def get_nav(conn):
     cur = conn.cursor()
