@@ -547,6 +547,27 @@ def seed():
 with app.app_context():
     init_db()
     seed()
+    # Add columns that may be missing from older PostgreSQL deployments
+    _MISSING_COLS = [
+        ("site_settings", "hero_position", "TEXT DEFAULT 'relative'"),
+        ("site_settings", "hero_height",   "TEXT DEFAULT 'screen'"),
+        ("site_settings", "nav_style",     "TEXT DEFAULT 'slide-right'"),
+        ("site_settings", "font_heading",  "TEXT DEFAULT ''"),
+        ("site_settings", "font_body",     "TEXT DEFAULT ''"),
+        ("site_settings", "font_mono",     "TEXT DEFAULT ''"),
+        ("site_settings", "container_max_width", "INTEGER DEFAULT 1200"),
+        ("site_settings", "container_justify",   "TEXT DEFAULT 'center'"),
+        ("site_settings", "button_style",  "TEXT DEFAULT 'solid'"),
+        ("site_settings", "button_radius", "INTEGER DEFAULT 6"),
+        ("site_settings", "contact_hours", "TEXT DEFAULT ''"),
+    ]
+    with db() as conn:
+        cur = conn.cursor()
+        for table, col, col_def in _MISSING_COLS:
+            try:
+                cur.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}")
+            except Exception:
+                pass  # column already exists — ignore
 
 if __name__ == '__main__':
     app.run(debug=True)
