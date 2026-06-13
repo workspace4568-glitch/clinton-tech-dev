@@ -132,6 +132,27 @@ _SQLITE_SCHEMA = """
         button_new_tab INTEGER DEFAULT 0,
         icon TEXT DEFAULT 'fa-solid fa-star',
         ord INTEGER DEFAULT 0,
+        enabled INTEGER DEFAULT 1,
+        icon_style TEXT DEFAULT 'default',
+        icon_border TEXT DEFAULT 'none',
+        icon_hover TEXT DEFAULT 'zoom'
+    );
+    CREATE TABLE IF NOT EXISTS service_cards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT DEFAULT '',
+        description TEXT DEFAULT '',
+        icon TEXT DEFAULT 'fa-solid fa-star',
+        ord INTEGER DEFAULT 0,
+        enabled INTEGER DEFAULT 1
+    );
+    CREATE TABLE IF NOT EXISTS portfolio_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT DEFAULT '',
+        description TEXT DEFAULT '',
+        icon TEXT DEFAULT 'fa-solid fa-briefcase',
+        link TEXT DEFAULT '',
+        link_new_tab INTEGER DEFAULT 0,
+        ord INTEGER DEFAULT 0,
         enabled INTEGER DEFAULT 1
     );
 """
@@ -175,7 +196,15 @@ _PG_TABLES = [
         id SERIAL PRIMARY KEY, title TEXT, description TEXT DEFAULT '',
         button_text TEXT DEFAULT 'Learn More', button_link TEXT DEFAULT '#',
         button_new_tab INTEGER DEFAULT 0,
+        icon TEXT DEFAULT 'fa-solid fa-star', ord INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1,
+        icon_style TEXT DEFAULT 'default', icon_border TEXT DEFAULT 'none', icon_hover TEXT DEFAULT 'zoom')""",
+    """CREATE TABLE IF NOT EXISTS service_cards (
+        id SERIAL PRIMARY KEY, title TEXT DEFAULT '', description TEXT DEFAULT '',
         icon TEXT DEFAULT 'fa-solid fa-star', ord INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)""",
+    """CREATE TABLE IF NOT EXISTS portfolio_items (
+        id SERIAL PRIMARY KEY, title TEXT DEFAULT '', description TEXT DEFAULT '',
+        icon TEXT DEFAULT 'fa-solid fa-briefcase', link TEXT DEFAULT '',
+        link_new_tab INTEGER DEFAULT 0, ord INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)""",
 ]
 
 def init_db():
@@ -187,6 +216,15 @@ def init_db():
         else:
             conn.executescript(_SQLITE_SCHEMA)
         _migrate(conn)
+        # Ensure newer tables exist even on old databases
+        try:
+            init_service_cards(conn)
+        except Exception:
+            pass
+        try:
+            init_portfolio_items(conn)
+        except Exception:
+            pass
 
 def _migrate(conn):
     """Safely add new columns to existing databases without breaking anything."""
@@ -208,6 +246,9 @@ def _migrate(conn):
         ("sections", "icon_style",          "TEXT DEFAULT 'default'"),
         ("sections", "icon_border",         "TEXT DEFAULT 'none'"),
         ("sections", "icon_hover",          "TEXT DEFAULT 'zoom'"),
+        ("initiatives", "icon_style",       "TEXT DEFAULT 'default'"),
+        ("initiatives", "icon_border",      "TEXT DEFAULT 'none'"),
+        ("initiatives", "icon_hover",       "TEXT DEFAULT 'zoom'"),
     ]
     for table, col, col_def in migrations:
         if USE_POSTGRES:
@@ -314,6 +355,61 @@ def get_all_initiatives(conn):
     cur = conn.cursor()
     cur.execute("SELECT * FROM initiatives ORDER BY ord")
     return _rows(cur.fetchall())
+
+# ── Service Cards ─────────────────────────────────────────────────────────────
+def init_service_cards(conn):
+    """Create service_cards table if missing (migration-safe)."""
+    if USE_POSTGRES:
+        conn.cursor().execute("""CREATE TABLE IF NOT EXISTS service_cards (
+            id SERIAL PRIMARY KEY, title TEXT DEFAULT '', description TEXT DEFAULT '',
+            icon TEXT DEFAULT 'fa-solid fa-star', ord INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)""")
+    else:
+        conn.execute("""CREATE TABLE IF NOT EXISTS service_cards (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT DEFAULT '', description TEXT DEFAULT '',
+            icon TEXT DEFAULT 'fa-solid fa-star', ord INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)""")
+
+def get_service_cards(conn, enabled_only=True):
+    cur = conn.cursor()
+    q = "SELECT * FROM service_cards"
+    if enabled_only:
+        q += " WHERE enabled=1"
+    q += " ORDER BY ord, id"
+    cur.execute(q)
+    return _rows(cur.fetchall())
+
+def get_all_service_cards(conn):
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM service_cards ORDER BY ord, id")
+    return _rows(cur.fetchall())
+
+# ── Portfolio Items ───────────────────────────────────────────────────────────
+def init_portfolio_items(conn):
+    """Create portfolio_items table if missing (migration-safe)."""
+    if USE_POSTGRES:
+        conn.cursor().execute("""CREATE TABLE IF NOT EXISTS portfolio_items (
+            id SERIAL PRIMARY KEY, title TEXT DEFAULT '', description TEXT DEFAULT '',
+            icon TEXT DEFAULT 'fa-solid fa-briefcase', link TEXT DEFAULT '',
+            link_new_tab INTEGER DEFAULT 0, ord INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)""")
+    else:
+        conn.execute("""CREATE TABLE IF NOT EXISTS portfolio_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT DEFAULT '', description TEXT DEFAULT '',
+            icon TEXT DEFAULT 'fa-solid fa-briefcase', link TEXT DEFAULT '',
+            link_new_tab INTEGER DEFAULT 0, ord INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)""")
+
+def get_portfolio_items(conn, enabled_only=True):
+    cur = conn.cursor()
+    q = "SELECT * FROM portfolio_items"
+    if enabled_only:
+        q += " WHERE enabled=1"
+    q += " ORDER BY ord, id"
+    cur.execute(q)
+    return _rows(cur.fetchall())
+
+def get_all_portfolio_items(conn):
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM portfolio_items ORDER BY ord, id")
+    return _rows(cur.fetchall())
+
 
 def count(conn, table):
     cur = conn.cursor()
