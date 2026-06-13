@@ -5,7 +5,9 @@ from functools import wraps
 from database import (db, init_db, USE_POSTGRES, _p, count, last_insert_id,
     get_settings, get_pages, get_page_by_slug, get_page_by_id,
     get_home_page, get_sections, get_nav, get_socials,
-    get_initiatives, get_all_initiatives)
+    get_initiatives, get_all_initiatives,
+    get_service_cards, get_all_service_cards,
+    get_portfolio_items, get_all_portfolio_items)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'clinton-tech-dev-suite-2024-secret')
@@ -145,10 +147,13 @@ def index():
         home = get_home_page(conn)
         sections   = get_sections(conn, home['id'], enabled_only=True) if home else []
         initiatives = get_initiatives(conn)
+        service_cards = get_service_cards(conn)
+        portfolio_items = get_portfolio_items(conn)
         nav    = get_nav(conn)
         socials = get_socials(conn)
     ctx = render_ctx(s, nav, socials)
-    return render_template('site/index.html', sections=sections, initiatives=initiatives, **ctx)
+    return render_template('site/index.html', sections=sections, initiatives=initiatives,
+                           service_cards=service_cards, portfolio_items=portfolio_items, **ctx)
 
 @app.route('/page/<slug>')
 def site_page(slug):
@@ -443,9 +448,12 @@ def admin_update_initiative(init_id):
     f = request.form
     btn_new_tab = 1 if 'button_new_tab' in f else 0
     with db() as conn:
-        execute(conn, "UPDATE initiatives SET title=?,description=?,button_text=?,button_link=?,button_new_tab=?,icon=? WHERE id=?",
+        execute(conn, """UPDATE initiatives SET title=?,description=?,button_text=?,button_link=?,
+                button_new_tab=?,icon=?,icon_style=?,icon_border=?,icon_hover=? WHERE id=?""",
                 (f.get('title'), f.get('description'), f.get('button_text'),
-                 f.get('button_link'), btn_new_tab, f.get('icon'), init_id))
+                 f.get('button_link'), btn_new_tab, f.get('icon'),
+                 f.get('icon_style','default'), f.get('icon_border','none'), f.get('icon_hover','zoom'),
+                 init_id))
     flash('Initiative updated!', 'success')
     return redirect(url_for('admin_initiatives'))
 
@@ -489,6 +497,28 @@ def seed():
             ]):
                 execute(conn, "INSERT INTO initiatives (title,description,button_text,button_link,icon,ord) VALUES (?,?,'Learn More','#contact',?,?)",
                         (title,desc,icon,i))
+        if count(conn, 'service_cards') == 0:
+            for i,(title,desc,icon) in enumerate([
+                ('Static Websites','Lightning-fast static sites with perfect Lighthouse scores, deployed on CDN for global reach.','fa-file-code'),
+                ('Web Applications','Full-stack apps with robust backends, databases, authentication, and APIs.','fa-server'),
+                ('UI/UX Design','Pixel-perfect interfaces designed for conversion and exceptional user experience.','fa-palette'),
+                ('E-Commerce','Online stores optimized for sales with secure payment processing and inventory management.','fa-cart-shopping'),
+                ('Responsive Design','Every build is mobile-first, tested across devices for flawless performance everywhere.','fa-mobile-screen'),
+                ('Deployment & DevOps','Production-ready deployments on Render, Vercel, Netlify, or your preferred platform.','fa-rocket'),
+            ]):
+                execute(conn, "INSERT INTO service_cards (title,description,icon,ord,enabled) VALUES (?,?,?,?,1)",
+                        (title, desc, f'fa-solid {icon}', i))
+        if count(conn, 'portfolio_items') == 0:
+            for i,(title,desc,icon) in enumerate([
+                ('E-Commerce Platform','Full-stack shop with Stripe payments, inventory system, and admin dashboard.','fa-store'),
+                ('Medical Clinic Site','HIPAA-considerate static site with appointment booking and staff pages.','fa-hospital'),
+                ('Restaurant Website','Stunning food-focused design with online menu, reservations, and gallery.','fa-utensils'),
+                ('Law Firm Site','Professional, trust-building presence with practice areas and attorney bios.','fa-scale-balanced'),
+                ('University Portal','Information architecture for academic departments with event management.','fa-graduation-cap'),
+                ('Church Community Site','Sermon archives, event calendar, and donation system for congregation.','fa-church'),
+            ]):
+                execute(conn, "INSERT INTO portfolio_items (title,description,icon,ord,enabled) VALUES (?,?,?,?,1)",
+                        (title, desc, f'fa-solid {icon}', i))
 
 # ─── STARTUP ─────────────────────────────────────────────────────────────────
 with app.app_context():
@@ -497,6 +527,71 @@ with app.app_context():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+# ─── SERVICE CARDS ───────────────────────────────────────────────────────────
+@app.route('/admin/service-cards', methods=['GET', 'POST'])
+@admin_required
+def admin_service_cards():
+    with db() as conn:
+        if request.method == 'POST':
+            action = request.form.get('action')
+            f = request.form
+            if action == 'add':
+                n = count(conn, 'service_cards')
+                execute(conn, "INSERT INTO service_cards (title,description,icon,ord,enabled) VALUES (?,?,?,?,1)",
+                        (f.get('title',''), f.get('description',''), f.get('icon','fa-solid fa-star'), n))
+                flash('Service card added!', 'success')
+            elif action == 'delete':
+                execute(conn, "DELETE FROM service_cards WHERE id=?", (f.get('id'),))
+                flash('Deleted.', 'success')
+        cards = get_all_service_cards(conn)
+    return render_template('admin/service_cards.html', cards=cards)
+
+@app.route('/admin/service-cards/<int:card_id>', methods=['POST'])
+@admin_required
+def admin_update_service_card(card_id):
+    f = request.form
+    enabled = 1 if 'enabled' in f else 0
+    with db() as conn:
+        execute(conn, "UPDATE service_cards SET title=?,description=?,icon=?,enabled=? WHERE id=?",
+                (f.get('title',''), f.get('description',''), f.get('icon','fa-solid fa-star'), enabled, card_id))
+    flash('Card saved!', 'success')
+    return redirect(url_for('admin_service_cards'))
+
+# ─── PORTFOLIO ITEMS ──────────────────────────────────────────────────────────
+@app.route('/admin/portfolio-items', methods=['GET', 'POST'])
+@admin_required
+def admin_portfolio_items():
+    with db() as conn:
+        if request.method == 'POST':
+            action = request.form.get('action')
+            f = request.form
+            if action == 'add':
+                n = count(conn, 'portfolio_items')
+                link_new_tab = 1 if 'link_new_tab' in f else 0
+                execute(conn, "INSERT INTO portfolio_items (title,description,icon,link,link_new_tab,ord,enabled) VALUES (?,?,?,?,?,?,1)",
+                        (f.get('title',''), f.get('description',''), f.get('icon','fa-solid fa-briefcase'),
+                         f.get('link',''), link_new_tab, n))
+                flash('Portfolio item added!', 'success')
+            elif action == 'delete':
+                execute(conn, "DELETE FROM portfolio_items WHERE id=?", (f.get('id'),))
+                flash('Deleted.', 'success')
+        items = get_all_portfolio_items(conn)
+    return render_template('admin/portfolio_items.html', items=items)
+
+@app.route('/admin/portfolio-items/<int:item_id>', methods=['POST'])
+@admin_required
+def admin_update_portfolio_item(item_id):
+    f = request.form
+    enabled = 1 if 'enabled' in f else 0
+    link_new_tab = 1 if 'link_new_tab' in f else 0
+    with db() as conn:
+        execute(conn, "UPDATE portfolio_items SET title=?,description=?,icon=?,link=?,link_new_tab=?,enabled=? WHERE id=?",
+                (f.get('title',''), f.get('description',''), f.get('icon','fa-solid fa-briefcase'),
+                 f.get('link',''), link_new_tab, enabled, item_id))
+    flash('Item saved!', 'success')
+    return redirect(url_for('admin_portfolio_items'))
+
 
 # ─── GALLERY (import extra db helpers) ───────────────────────────────────────
 from database import init_gallery, get_gallery_items, get_gallery_categories, get_all_gallery_items
