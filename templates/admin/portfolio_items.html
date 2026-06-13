@@ -1,0 +1,192 @@
+{% extends 'admin/base.html' %}
+{% block title %}Portfolio Items{% endblock %}
+{% block page_title %}Portfolio Items{% endblock %}
+{% block content %}
+
+<p style="color:var(--muted); font-size:0.9rem; margin-bottom:24px;">
+    Portfolio cards appear in the <strong>Portfolio</strong> section of your homepage. Each card has an icon, title, description, and optional link.
+</p>
+
+{% for item in items %}
+<div class="card">
+    <div class="card-title">
+        <i class="{{ item.icon }}" style="color:var(--primary);"></i>
+        {{ item.title }}
+        {% if item.link %}<a href="{{ item.link }}" target="_blank" style="font-size:0.78rem;color:var(--muted);margin-left:8px;"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>{% endif %}
+        {% if not item.enabled %}<span class="badge badge-red" style="font-size:0.7rem;margin-left:8px;">Hidden</span>{% endif %}
+        <span style="margin-left:auto;">
+            <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this portfolio item?');">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="id" value="{{ item.id }}">
+                <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i> Delete</button>
+            </form>
+        </span>
+    </div>
+    <form method="POST" action="/admin/portfolio-items/{{ item.id }}">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" value="{{ item.title }}" required>
+            </div>
+            <div class="form-group">
+                <label>Font Awesome Icon</label>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <i id="port-preview-{{ item.id }}" class="{{ item.icon }}" style="font-size:1.6rem;color:var(--primary);width:30px;text-align:center;"></i>
+                    <input type="text" name="icon" value="{{ item.icon }}" placeholder="e.g. fa-solid fa-store"
+                           oninput="document.getElementById('port-preview-{{ item.id }}').className=this.value;" style="flex:1;">
+                </div>
+                <span class="form-hint">Find icons at <a href="https://fontawesome.com/icons" target="_blank" style="color:var(--primary);">fontawesome.com/icons</a></span>
+            </div>
+            <div class="form-group full">
+                <label>Description</label>
+                <textarea name="description" rows="2">{{ item.description }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Project Link <span style="color:var(--muted);font-size:0.82rem;font-weight:400;">(optional)</span></label>
+                <div style="position:relative;">
+                    <input type="text" name="link" value="{{ item.link or '' }}"
+                           placeholder="https://example.com or /page/project"
+                           style="padding-right:90px;"
+                           oninput="detectPortExternal(this)">
+                    <span class="port-ext-badge" style="
+                        display:{% if item.link and item.link.startswith('http') %}inline-flex{% else %}none{% endif %};
+                        position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                        align-items:center;gap:4px;background:var(--primary)20;color:var(--primary);
+                        font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;
+                        pointer-events:none;text-transform:uppercase;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> External
+                    </span>
+                </div>
+                <span class="form-hint">Leave empty for a display-only card (no click through).</span>
+            </div>
+            <div class="form-group" style="display:flex;align-items:center;">
+                <div class="checkbox-row" style="margin-top:22px;">
+                    <input type="checkbox" name="link_new_tab" id="port-newtab-{{ item.id }}"
+                           {% if item.get('link_new_tab') %}checked{% endif %}>
+                    <label for="port-newtab-{{ item.id }}">
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--primary);margin-right:4px;"></i>
+                        Open link in new tab
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Icon Picks -->
+        <div style="margin:12px 0;padding:14px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+            <p style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Quick Icon Picks</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                {% for lbl, ic in [
+                    ('Store','fa-solid fa-store'),('Hospital','fa-solid fa-hospital'),
+                    ('Restaurant','fa-solid fa-utensils'),('Law','fa-solid fa-scale-balanced'),
+                    ('Education','fa-solid fa-graduation-cap'),('Church','fa-solid fa-church'),
+                    ('Tech','fa-solid fa-microchip'),('Finance','fa-solid fa-coins'),
+                    ('Health','fa-solid fa-heart-pulse'),('Real Estate','fa-solid fa-house'),
+                    ('Travel','fa-solid fa-plane'),('Sports','fa-solid fa-trophy'),
+                    ('Music','fa-solid fa-music'),('Photo','fa-solid fa-camera'),('Blog','fa-solid fa-newspaper')
+                ] %}
+                <button type="button"
+                    onclick="var f=this.closest('form');f.querySelector('[name=icon]').value='{{ ic }}';f.querySelector('[id^=port-preview-]').className='{{ ic }}';"
+                    style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:0.78rem;cursor:pointer;">
+                    <i class="{{ ic }}" style="color:var(--primary);"></i> {{ lbl }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="checkbox-row" style="margin:12px 0;">
+            <input type="checkbox" name="enabled" id="en-port-{{ item.id }}" {% if item.enabled %}checked{% endif %}>
+            <label for="en-port-{{ item.id }}">Visible on site</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> Save Item</button>
+    </form>
+</div>
+{% endfor %}
+
+<!-- ADD NEW -->
+<div class="card" style="border-color:var(--primary)40;">
+    <div class="card-title"><i class="fa-solid fa-plus"></i> Add New Portfolio Item</div>
+    <form method="POST">
+        <input type="hidden" name="action" value="add">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" required placeholder="e.g. SaaS Dashboard">
+            </div>
+            <div class="form-group">
+                <label>Font Awesome Icon</label>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <i id="new-port-preview" class="fa-solid fa-briefcase" style="font-size:1.6rem;color:var(--primary);width:30px;text-align:center;"></i>
+                    <input type="text" name="icon" placeholder="fa-solid fa-briefcase" value="fa-solid fa-briefcase"
+                           oninput="document.getElementById('new-port-preview').className=this.value;" style="flex:1;">
+                </div>
+            </div>
+            <div class="form-group full">
+                <label>Description</label>
+                <textarea name="description" rows="2" placeholder="What was built and what technologies were used..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Project Link <span style="color:var(--muted);font-size:0.82rem;font-weight:400;">(optional)</span></label>
+                <div style="position:relative;">
+                    <input type="text" name="link" placeholder="https://example.com"
+                           style="padding-right:90px;" oninput="detectPortExternal(this)">
+                    <span class="port-ext-badge" style="
+                        display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                        align-items:center;gap:4px;background:var(--primary)20;color:var(--primary);
+                        font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;
+                        pointer-events:none;text-transform:uppercase;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> External
+                    </span>
+                </div>
+            </div>
+            <div class="form-group" style="display:flex;align-items:center;">
+                <div class="checkbox-row" style="margin-top:22px;">
+                    <input type="checkbox" name="link_new_tab" id="new-port-newtab">
+                    <label for="new-port-newtab">Open link in new tab</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Icon Picks for new form -->
+        <div style="margin:12px 0;padding:14px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+            <p style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Quick Icon Picks</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                {% for lbl, ic in [
+                    ('Store','fa-solid fa-store'),('Hospital','fa-solid fa-hospital'),
+                    ('Restaurant','fa-solid fa-utensils'),('Law','fa-solid fa-scale-balanced'),
+                    ('Education','fa-solid fa-graduation-cap'),('Church','fa-solid fa-church'),
+                    ('Tech','fa-solid fa-microchip'),('Finance','fa-solid fa-coins'),
+                    ('Health','fa-solid fa-heart-pulse'),('Real Estate','fa-solid fa-house'),
+                    ('Travel','fa-solid fa-plane'),('Sports','fa-solid fa-trophy'),
+                    ('Music','fa-solid fa-music'),('Photo','fa-solid fa-camera'),('Blog','fa-solid fa-newspaper')
+                ] %}
+                <button type="button"
+                    onclick="var inp=document.querySelector('form:last-of-type [name=icon]');inp.value='{{ ic }}';document.getElementById('new-port-preview').className='{{ ic }}';"
+                    style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:0.78rem;cursor:pointer;">
+                    <i class="{{ ic }}" style="color:var(--primary);"></i> {{ lbl }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Portfolio Item</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function detectPortExternal(input) {
+    const val = input.value.trim();
+    const isExt = val.startsWith('http://') || val.startsWith('https://');
+    const badge = input.parentElement.querySelector('.port-ext-badge');
+    if (badge) badge.style.display = isExt ? 'inline-flex' : 'none';
+    if (isExt) {
+        const form = input.closest('form');
+        if (form) {
+            const cb = form.querySelector('[name="link_new_tab"]');
+            if (cb) cb.checked = true;
+        }
+    }
+}
+</script>
+{% endblock %}

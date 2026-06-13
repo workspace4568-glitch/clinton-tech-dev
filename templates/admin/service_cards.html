@@ -1,0 +1,128 @@
+{% extends 'admin/base.html' %}
+{% block title %}Service Cards{% endblock %}
+{% block page_title %}Service Cards{% endblock %}
+{% block content %}
+
+<p style="color:var(--muted); font-size:0.9rem; margin-bottom:24px;">
+    Service cards appear in the <strong>Services</strong> section of your homepage. Add, edit, reorder and toggle them here.
+    Icon style and hover animation are controlled by the <strong>Services</strong> section settings in
+    <a href="/admin/pages" style="color:var(--primary);">Pages → Edit Home → Services section</a>.
+</p>
+
+{% for card in cards %}
+<div class="card">
+    <div class="card-title">
+        <i class="{{ card.icon }}" style="color:var(--primary);"></i>
+        {{ card.title }}
+        {% if not card.enabled %}<span class="badge badge-red" style="font-size:0.7rem;margin-left:8px;">Hidden</span>{% endif %}
+        <span style="margin-left:auto;">
+            <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this card?');">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="id" value="{{ card.id }}">
+                <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i> Delete</button>
+            </form>
+        </span>
+    </div>
+    <form method="POST" action="/admin/service-cards/{{ card.id }}">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" value="{{ card.title }}" required>
+            </div>
+            <div class="form-group">
+                <label>Font Awesome Icon</label>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <i id="icon-preview-{{ card.id }}" class="{{ card.icon }}" style="font-size:1.6rem;color:var(--primary);width:30px;text-align:center;"></i>
+                    <input type="text" name="icon" value="{{ card.icon }}" placeholder="e.g. fa-solid fa-rocket"
+                           oninput="document.getElementById('icon-preview-{{ card.id }}').className=this.value;" style="flex:1;">
+                </div>
+                <span class="form-hint">Find icons at <a href="https://fontawesome.com/icons" target="_blank" style="color:var(--primary);">fontawesome.com/icons</a></span>
+            </div>
+            <div class="form-group full">
+                <label>Description</label>
+                <textarea name="description" rows="2">{{ card.description }}</textarea>
+            </div>
+        </div>
+
+        <!-- Quick Icon Picks -->
+        <div style="margin:12px 0;padding:14px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+            <p style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Quick Icon Picks</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                {% for lbl, ic in [
+                    ('Websites','fa-solid fa-file-code'),('Apps','fa-solid fa-server'),
+                    ('Design','fa-solid fa-palette'),('E-Commerce','fa-solid fa-cart-shopping'),
+                    ('Mobile','fa-solid fa-mobile-screen'),('Rocket','fa-solid fa-rocket'),
+                    ('Security','fa-solid fa-shield-halved'),('Speed','fa-solid fa-bolt'),
+                    ('Layers','fa-solid fa-layer-group'),('Globe','fa-solid fa-globe'),
+                    ('Database','fa-solid fa-database'),('Chart','fa-solid fa-chart-line'),
+                    ('Code','fa-solid fa-code'),('Wrench','fa-solid fa-wrench'),('API','fa-solid fa-plug')
+                ] %}
+                <button type="button"
+                    onclick="var f=this.closest('form');f.querySelector('[name=icon]').value='{{ ic }}';f.querySelector('[id^=icon-preview-]').className='{{ ic }}';"
+                    style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:0.78rem;cursor:pointer;">
+                    <i class="{{ ic }}" style="color:var(--primary);"></i> {{ lbl }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="checkbox-row" style="margin:12px 0;">
+            <input type="checkbox" name="enabled" id="en-svc-{{ card.id }}" {% if card.enabled %}checked{% endif %}>
+            <label for="en-svc-{{ card.id }}">Visible on site</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> Save Card</button>
+    </form>
+</div>
+{% endfor %}
+
+<!-- ADD NEW -->
+<div class="card" style="border-color:var(--primary)40;">
+    <div class="card-title"><i class="fa-solid fa-plus"></i> Add New Service Card</div>
+    <form method="POST">
+        <input type="hidden" name="action" value="add">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" required placeholder="e.g. API Development">
+            </div>
+            <div class="form-group">
+                <label>Font Awesome Icon</label>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <i id="new-svc-preview" class="fa-solid fa-star" style="font-size:1.6rem;color:var(--primary);width:30px;text-align:center;"></i>
+                    <input type="text" name="icon" placeholder="fa-solid fa-plug" value="fa-solid fa-star"
+                           oninput="document.getElementById('new-svc-preview').className=this.value;" style="flex:1;">
+                </div>
+                <span class="form-hint">Find icons at <a href="https://fontawesome.com/icons" target="_blank" style="color:var(--primary);">fontawesome.com/icons</a></span>
+            </div>
+            <div class="form-group full">
+                <label>Description</label>
+                <textarea name="description" rows="2" placeholder="Short description of this service..."></textarea>
+            </div>
+        </div>
+
+        <!-- Quick Icon Picks for new form -->
+        <div style="margin:12px 0;padding:14px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+            <p style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Quick Icon Picks</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                {% for lbl, ic in [
+                    ('Websites','fa-solid fa-file-code'),('Apps','fa-solid fa-server'),
+                    ('Design','fa-solid fa-palette'),('E-Commerce','fa-solid fa-cart-shopping'),
+                    ('Mobile','fa-solid fa-mobile-screen'),('Rocket','fa-solid fa-rocket'),
+                    ('Security','fa-solid fa-shield-halved'),('Speed','fa-solid fa-bolt'),
+                    ('Layers','fa-solid fa-layer-group'),('Globe','fa-solid fa-globe'),
+                    ('Database','fa-solid fa-database'),('Chart','fa-solid fa-chart-line'),
+                    ('Code','fa-solid fa-code'),('Wrench','fa-solid fa-wrench'),('API','fa-solid fa-plug')
+                ] %}
+                <button type="button"
+                    onclick="var i=document.querySelector('[name=icon]');i.value='{{ ic }}';document.getElementById('new-svc-preview').className='{{ ic }}';"
+                    style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:0.78rem;cursor:pointer;">
+                    <i class="{{ ic }}" style="color:var(--primary);"></i> {{ lbl }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Service Card</button>
+    </form>
+</div>
+{% endblock %}
