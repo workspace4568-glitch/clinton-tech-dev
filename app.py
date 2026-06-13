@@ -259,6 +259,11 @@ def admin_settings():
                 'font_mono':               f.get('font_mono',''),
                 'hero_position':           f.get('hero_position','relative'),
                 'hero_height':             f.get('hero_height','screen'),
+                'logo_border_radius':      f.get('logo_border_radius','50'),
+                'logo_border_width':       int(f.get('logo_border_width', 0) or 0),
+                'logo_border_color':       f.get('logo_border_color',''),
+                'logo_bg_color':           f.get('logo_bg_color',''),
+                'logo_show_name':          1 if 'logo_show_name' in f else 0,
             }
 
             cur = conn.cursor()
@@ -370,7 +375,9 @@ def admin_update_section(section_id):
             UPDATE sections SET heading=?,subheading=?,content=?,
             button_text=?,button_link=?,button_new_tab=?,enabled=?,image_url=?,image_alt=?,
             image_position=?,image_size=?,image_overlay=?,image_overlay_color=?,image_blur=?,
-            icon_style=?,icon_border=?,icon_hover=?
+            section_bg_color=?,bg_attachment=?,
+            icon_style=?,icon_border=?,icon_hover=?,icon_color=?,
+            card_hover=?,card_hover_color=?,card_hover_font_color=?,card_transition_speed=?
             WHERE id=?
         """, (f.get('heading',''), f.get('subheading',''), f.get('content',''),
               f.get('button_text',''), f.get('button_link',''), btn_new_tab, enabled,
@@ -378,7 +385,11 @@ def admin_update_section(section_id):
               f.get('image_position','center'), f.get('image_size','cover'),
               _safe_float(f.get('image_overlay', 0)), f.get('image_overlay_color','#000000'),
               _safe_int(f.get('image_blur', 0)),
+              f.get('section_bg_color',''), f.get('bg_attachment','scroll'),
               f.get('icon_style','default'), f.get('icon_border','none'), f.get('icon_hover','zoom'),
+              f.get('icon_color',''),
+              f.get('card_hover','lift'), f.get('card_hover_color',''),
+              f.get('card_hover_font_color',''), f.get('card_transition_speed','normal'),
               section_id))
         page_id = sec['page_id']
     flash('Section saved!', 'success')
