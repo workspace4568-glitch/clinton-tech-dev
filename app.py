@@ -239,7 +239,8 @@ def admin_settings():
                     button_style=?, button_radius=?,
                     container_max_width=?, container_justify=?,
                     nav_style=?,
-                    font_heading=?, font_body=?, font_mono=?
+                    font_heading=?, font_body=?, font_mono=?,
+                    hero_position=?, hero_height=?
                 WHERE id=1
             """, (
                 f.get('site_name',''), f.get('tagline',''),
@@ -253,7 +254,8 @@ def admin_settings():
                 f.get('button_style','solid'), int(f.get('button_radius', 6)),
                 int(f.get('container_max_width', 1200)), f.get('container_justify','center'),
                 f.get('nav_style','slide-right'),
-                f.get('font_heading',''), f.get('font_body',''), f.get('font_mono','')
+                f.get('font_heading',''), f.get('font_body',''), f.get('font_mono',''),
+                f.get('hero_position','relative'), f.get('hero_height','screen')
             ))
             flash('Settings saved!', 'success')
             return redirect(url_for('admin_settings'))
@@ -461,7 +463,7 @@ def admin_update_initiative(init_id):
 def seed():
     with db() as conn:
         if count(conn, 'site_settings') == 0:
-            execute(conn, "INSERT INTO site_settings (id) VALUES (1)")
+            execute(conn, "INSERT INTO site_settings (id,footer_text) VALUES (1,'')")
         if count(conn, 'pages') == 0:
             execute(conn, "INSERT INTO pages (title,slug,is_home,visible,ord) VALUES ('Home','home',1,1,0)")
             cur = execute(conn, "SELECT id FROM pages WHERE is_home=1")
