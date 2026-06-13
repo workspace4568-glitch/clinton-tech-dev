@@ -130,6 +130,12 @@
   }
   .nav-toggle:hover { background: var(--surface); }
 
+  /* ── Mobile: show hamburger, hide desktop links ── */
+  @media (max-width: 768px) {
+    .nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .nav-links  { display: none !important; }
+  }
+
   /* Mobile drawer */
   .mobile-drawer {
     display: none; position: fixed; inset: 0; z-index: 999;
@@ -565,17 +571,22 @@
     nav.classList.toggle('scrolled', window.scrollY > 20);
   }, { passive: true });
 
-  // ── Responsive nav: hide links when too wide ─────────
+  // ── Responsive nav: CSS handles mobile toggle visibility ──
+  // Force drawer on medium screens when links overflow
   function checkNavOverflow() {
-    const toggle = document.querySelector('.nav-toggle');
-    const links  = document.querySelector('.nav-links');
-    if (!toggle || !links) return;
-    // Show toggle on small screens (CSS handles it), but also
-    // hide links if they overflow the nav on medium screens
+    const toggle   = document.querySelector('.nav-toggle');
+    const links    = document.querySelector('.nav-links');
     const navInner = document.querySelector('.nav-inner');
-    if (navInner) {
-      const available = navInner.offsetWidth - 200; // approx brand width
-      toggle.style.display = links.scrollWidth > available ? 'block' : '';
+    if (!toggle || !links || !navInner) return;
+    // Only run on screens wider than the CSS breakpoint (>768px)
+    if (window.innerWidth <= 768) return;
+    const available = navInner.offsetWidth - 220;
+    if (links.scrollWidth > available) {
+      links.style.display = 'none';
+      toggle.style.display = 'flex';
+    } else {
+      links.style.display = '';
+      toggle.style.display = '';
     }
   }
   window.addEventListener('resize', checkNavOverflow, { passive: true });
