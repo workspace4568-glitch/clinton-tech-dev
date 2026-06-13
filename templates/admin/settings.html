@@ -212,6 +212,71 @@
 </div>
 
 <!-- NAV / HAMBURGER STYLE -->
+
+<!-- HERO POSITION & HEIGHT -->
+<div class="card" id="hero-settings">
+    <div class="card-title"><i class="fa-solid fa-image"></i> Hero Section Behaviour</div>
+    <p style="color:var(--muted); font-size:0.88rem; margin-bottom:24px;">
+        Control how the hero section and navbar sit on the page — sticky, fixed, pinned to bottom, or static.
+    </p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
+
+        <!-- Nav/Hero Position -->
+        <div>
+            <label style="display:block; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:14px;">
+                Navbar Position
+            </label>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                {% set hpos_opts = [
+                    ('sticky',   'fa-thumbtack',           'Sticky',          'Nav stays at the top as you scroll (recommended)'),
+                    ('fixed',    'fa-lock',                'Fixed Top',        'Always visible at top, floats over content'),
+                    ('relative', 'fa-align-justify',       'Static / Inline',  'Nav flows with the page — no sticky behaviour'),
+                    ('bottom',   'fa-arrow-down-to-line',  'Fixed Bottom',     'Nav pinned to the bottom edge (mobile-app style)'),
+                ] %}
+                {% for val, icon, name, desc in hpos_opts %}
+                <label style="border:2px solid {% if (s.hero_position or 'sticky') == val %}var(--primary){% else %}var(--border){% endif %}; border-radius:8px; padding:12px 14px; cursor:pointer; transition:all 0.15s; display:flex; gap:12px; align-items:center;"
+                    onclick="this.closest('div').querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)'); this.style.borderColor='var(--primary)';">
+                    <input type="radio" name="hero_position" value="{{ val }}" {% if (s.hero_position or 'sticky') == val %}checked{% endif %} style="display:none;">
+                    <i class="fa-solid {{ icon }}" style="color:var(--primary); width:16px; text-align:center; flex-shrink:0;"></i>
+                    <div>
+                        <div style="font-weight:700; font-size:0.88rem;">{{ name }}</div>
+                        <div style="font-size:0.75rem; color:var(--muted); margin-top:2px; line-height:1.4;">{{ desc }}</div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Hero Height -->
+        <div>
+            <label style="display:block; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:14px;">
+                Hero Height
+            </label>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                {% set hh_opts = [
+                    ('screen', 'fa-expand',         'Full Screen',   'Hero fills the entire viewport height (100svh)'),
+                    ('large',  'fa-up-right-and-down-left-from-center', 'Large',  '80% of viewport — tall but shows content below'),
+                    ('medium', 'fa-arrows-up-down', 'Medium',        '60% viewport — balanced hero section'),
+                    ('small',  'fa-compress',       'Small',         'Compact 40% height — content-first layout'),
+                    ('auto',   'fa-arrows-minimize','Auto / Padded', 'Height wraps content naturally with padding'),
+                ] %}
+                {% for val, icon, name, desc in hh_opts %}
+                <label style="border:2px solid {% if (s.hero_height or 'screen') == val %}var(--primary){% else %}var(--border){% endif %}; border-radius:8px; padding:12px 14px; cursor:pointer; transition:all 0.15s; display:flex; gap:12px; align-items:center;"
+                    onclick="this.closest('div').querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)'); this.style.borderColor='var(--primary)';">
+                    <input type="radio" name="hero_height" value="{{ val }}" {% if (s.hero_height or 'screen') == val %}checked{% endif %} style="display:none;">
+                    <i class="fa-solid {{ icon }}" style="color:var(--primary); width:16px; text-align:center; flex-shrink:0;"></i>
+                    <div>
+                        <div style="font-weight:700; font-size:0.88rem;">{{ name }}</div>
+                        <div style="font-size:0.75rem; color:var(--muted); margin-top:2px; line-height:1.4;">{{ desc }}</div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card" id="nav-styles">
     <div class="card-title"><i class="fa-solid fa-bars"></i> Navigation &amp; Hamburger Style</div>
     <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:20px;">
