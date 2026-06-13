@@ -1,19 +1,5 @@
 {% extends 'admin/base.html' %}
-{% block title %}Edit: {{ page.title }}<script>
-function updateColorField(el, name, form) {
-    const v = el.value.trim();
-    const hidden = form.querySelector('[name="' + name + '"]');
-    if (hidden && hidden.type === 'color') hidden.value = v || '#000000';
-}
-function clearColorPair(btn, name) {
-    const form = btn.closest('form');
-    const colorInput = form.querySelector('input[type="color"][name="' + name + '"]');
-    const textInput = btn.previousElementSibling;
-    if (colorInput) colorInput.value = '#000000';
-    if (textInput) textInput.value = '';
-}
-</script>
-{% endblock %}
+{% block title %}Edit: {{ page.title }}{% endblock %}
 {% block page_title %}Edit Page: {{ page.title }}{% endblock %}
 
 {% block extra_head %}
@@ -551,6 +537,20 @@ function clearColorPair(btn, name) {
 
 {% block scripts %}
 <script>
+// ── Utility functions ────────────────────────────────────────────────────────
+function updateColorField(el, name, form) {
+    const v = el.value.trim();
+    const hidden = form.querySelector('[name="' + name + '"]');
+    if (hidden && hidden.type === 'color') hidden.value = v || '#000000';
+}
+function clearColorPair(btn, name) {
+    const form = btn.closest('form');
+    const colorInput = form.querySelector('input[type="color"][name="' + name + '"]');
+    const textInput = btn.previousElementSibling;
+    if (colorInput) colorInput.value = '#000000';
+    if (textInput) textInput.value = '';
+}
+
 // ── Color palettes (like Word / Google Docs) ────────────────────────────────
 const TEXT_COLORS = [
     '#000000','#1a1a1a','#333333','#555555','#777777','#999999','#bbbbbb','#dddddd','#f0f0f0','#ffffff',
