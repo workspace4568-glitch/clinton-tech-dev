@@ -27,7 +27,7 @@
     </div>
 </section>
 
-{% elif sec.type == 'content' %}
+{% elif sec.type in ['content', 'services', 'about', 'portfolio', 'contact'] %}
 <section>
     <div class="container">
         {% if sec.heading %}<h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>{% endif %}
