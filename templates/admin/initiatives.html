@@ -67,6 +67,51 @@
                 </div>
             </div>
         </div>
+            <!-- ── ICON STYLE CONTROLS ── -->
+            <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:8px;">
+                <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--primary);margin-right:6px;"></i> Icon Appearance &amp; Animation
+                </p>
+                <div class="form-grid" style="gap:16px;">
+                    <div class="form-group">
+                        <label>Icon Style</label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                            {% for val, label in [('default','Default'),('solid','Solid'),('outline','Outline'),('ghost','Ghost'),('glass','Glass'),('shadow','Shadow')] %}
+                            <label style="border:2px solid {% if (init.get('icon_style') or 'default') == val %}var(--primary){% else %}var(--border){% endif %};border-radius:6px;padding:8px;text-align:center;cursor:pointer;font-size:0.78rem;font-weight:600;transition:0.15s;"
+                                onclick="this.closest('div').querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)');this.style.borderColor='var(--primary)';">
+                                <input type="radio" name="icon_style" value="{{ val }}" {% if (init.get('icon_style') or 'default') == val %}checked{% endif %} style="display:none;">
+                                {{ label }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Icon Shape</label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            {% for val, label in [('none','Square-ish'),('rounded','Circle'),('square','Sharp'),('squircle','Squircle')] %}
+                            <label style="border:2px solid {% if (init.get('icon_border') or 'none') == val %}var(--primary){% else %}var(--border){% endif %};border-radius:6px;padding:8px;text-align:center;cursor:pointer;font-size:0.78rem;font-weight:600;transition:0.15s;"
+                                onclick="this.closest('div').querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)');this.style.borderColor='var(--primary)';">
+                                <input type="radio" name="icon_border" value="{{ val }}" {% if (init.get('icon_border') or 'none') == val %}checked{% endif %} style="display:none;">
+                                {{ label }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="form-group full">
+                        <label>Hover Animation</label>
+                        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+                            {% for val, label, emoji in [('zoom','Zoom','🔍'),('rotate','Rotate','🔄'),('bounce','Bounce','⬆️'),('flip','Flip','🔃'),('shake','Shake','↔️'),('pulse','Pulse','💓'),('glow','Glow','✨'),('spin','Spin','🌀'),('none','None','⛔')] %}
+                            <label style="border:2px solid {% if (init.get('icon_hover') or 'zoom') == val %}var(--primary){% else %}var(--border){% endif %};border-radius:6px;padding:8px 4px;text-align:center;cursor:pointer;font-size:0.72rem;font-weight:600;transition:0.15s;"
+                                onclick="this.closest('div').querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)');this.style.borderColor='var(--primary)';">
+                                <input type="radio" name="icon_hover" value="{{ val }}" {% if (init.get('icon_hover') or 'zoom') == val %}checked{% endif %} style="display:none;">
+                                <span style="display:block;font-size:1.1rem;margin-bottom:2px;">{{ emoji }}</span>{{ label }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         <div style="margin-top:16px;">
             <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> Save</button>
         </div>
