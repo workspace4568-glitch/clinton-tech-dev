@@ -210,17 +210,19 @@ def _migrate(conn):
         ("sections", "icon_hover",          "TEXT DEFAULT 'zoom'"),
     ]
     for table, col, col_def in migrations:
-        try:
-            if USE_POSTGRES:
-                conn.cursor().execute(
-                    f"ALTER TABLE {table} ADD COLUMN {col} {col_def}"
-                )
-            else:
-                conn.execute(
-                    f"ALTER TABLE {table} ADD COLUMN {col} {col_def}"
-                )
-        except Exception:
-            pass  # Column already exists — safe to ignore
+        if USE_POSTGRES:
+            cur = conn.cursor()
+            try:
+                cur.execute("SAVEPOINT _migrate_sp")
+                cur.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}")
+                cur.execute("RELEASE SAVEPOINT _migrate_sp")
+            except Exception:
+                cur.execute("ROLLBACK TO SAVEPOINT _migrate_sp")  # keeps transaction alive
+        else:
+            try:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}")
+            except Exception:
+                pass  # Column already exists — safe to ignore
 
 # ── Query Helpers ─────────────────────────────────────────────────────────────
 def _row(r):
