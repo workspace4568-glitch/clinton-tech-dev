@@ -3,8 +3,338 @@
 {% block page_title %}Edit Page: {{ page.title }}{% endblock %}
 
 {% block extra_head %}
-<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<!-- Quill 2 via CDN (full feature set) -->
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<style>
+    /* ── Quill toolbar theming ── */
+    .ql-toolbar.ql-snow {
+        background: var(--surface2);
+        border-color: var(--border) !important;
+        border-radius: 8px 8px 0 0;
+        padding: 8px 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: center;
+    }
+    .ql-container.ql-snow {
+        background: var(--bg);
+        border-color: var(--border) !important;
+        border-radius: 0 0 8px 8px;
+        color: var(--text);
+        min-height: 140px;
+        font-size: 0.97rem;
+    }
+    .ql-editor { color: var(--text); line-height: 1.7; padding: 16px; }
+    .ql-editor.ql-blank::before { color: var(--text-muted); font-style: normal; }
+
+    /* Make toolbar icons match admin theme */
+    .ql-snow .ql-stroke { stroke: var(--text) !important; }
+    .ql-snow .ql-fill  { fill:   var(--text) !important; }
+    .ql-snow .ql-picker-label { color: var(--text) !important; }
+    .ql-snow .ql-picker-options {
+        background: var(--surface2) !important;
+        border-color: var(--border) !important;
+        border-radius: 6px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        z-index: 9999;
+    }
+    .ql-snow .ql-picker-item { color: var(--text) !important; }
+    .ql-snow .ql-picker-item:hover,
+    .ql-snow .ql-picker-item.ql-selected { color: var(--primary) !important; }
+    .ql-snow button:hover .ql-stroke,
+    .ql-snow button.ql-active .ql-stroke { stroke: var(--primary) !important; }
+    .ql-snow button:hover .ql-fill,
+    .ql-snow button.ql-active .ql-fill  { fill:   var(--primary) !important; }
+    .ql-snow button.ql-active, .ql-snow .ql-picker-label.ql-active { color: var(--primary) !important; }
+
+    /* Color picker swatches */
+    .ql-snow .ql-color-picker .ql-picker-options { padding: 6px; width: 220px; }
+    .ql-snow .ql-color-picker .ql-picker-item {
+        border-radius: 3px; width: 20px; height: 20px; margin: 2px;
+        border: 2px solid transparent;
+    }
+    .ql-snow .ql-color-picker .ql-picker-item:hover,
+    .ql-snow .ql-color-picker .ql-picker-item.ql-selected { border-color: #fff; }
+    .ql-snow .ql-color-picker svg { display: none; }
+    .ql-color .ql-picker-label svg, .ql-background .ql-picker-label svg { display: block !important; }
+
+    /* Separator between toolbar groups */
+    .ql-toolbar.ql-snow .ql-formats { border-right: 1px solid var(--border); padding-right: 8px; margin-right: 4px; }
+    .ql-toolbar.ql-snow .ql-formats:last-child { border-right: none; }
+
+    /* Section blocks */
+    .section-block { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; overflow: hidden; transition: box-shadow 0.15s; }
+    .section-block:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+    .section-header {
+        background: var(--surface2); padding: 14px 20px;
+        display: flex; align-items: center; justify-content: space-between;
+        cursor: pointer; user-select: none;
+    }
+    .section-header-left { display: flex; align-items: center; gap: 10px; }
+    .section-body { padding: 24px; display: none; }
+    .section-body.open { display: block; }
+    .type-badge { font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: var(--primary)20; color: var(--primary); font-weight: 700; text-transform: uppercase; }
+
+    /* Font-size picker label fix */
+    .ql-snow .ql-size .ql-picker-label::before,
+    .ql-snow .ql-size .ql-picker-item::before { content: attr(data-value) !important; color: var(--text); }
+    .ql-snow .ql-size .ql-picker-label[data-value=""]::before { content: 'Normal' !important; }
+    .ql-snow .ql-font .ql-picker-label::before,
+    .ql-snow .ql-font .ql-picker-item::before { content: attr(data-value) !important; }
+    .ql-snow .ql-font .ql-picker-label[data-value=""]::before,
+    .ql-snow .ql-font .ql-picker-item[data-value=""]::before { content: 'Default' !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- PAGE SETTINGS -->
+<div class="card">
+    <div class="card-title"><i class="fa-solid fa-gear"></i> Page Settings</div>
+    <form method="POST">
+        <input type="hidden" name="action" value="update_page">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Page Title</label>
+                <input type="text" name="title" value="{{ page.title }}" required>
+            </div>
+            <div class="form-group">
+                <label>URL Slug</label>
+                <input type="text" name="slug" value="{{ page.slug }}" {% if page.is_home %}readonly style="opacity:0.5;"{% endif %}>
+                {% if page.is_home %}<span class="form-hint">Home page slug cannot be changed.</span>{% endif %}
+            </div>
+        </div>
+        <div class="checkbox-row" style="margin-top:12px;">
+            <input type="checkbox" name="visible" id="vis" {% if page.visible %}checked{% endif %}>
+            <label for="vis">Visible to visitors</label>
+        </div>
+        <div style="margin-top:20px; display:flex; gap:12px;">
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+            <a href="{% if page.is_home %}/{% else %}/page/{{ page.slug }}{% endif %}" target="_blank" class="btn btn-secondary"><i class="fa-solid fa-eye"></i> Preview Page</a>
+        </div>
+    </form>
+</div>
+
+<!-- SECTIONS -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <h2 style="font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700;">
+        <i class="fa-solid fa-layer-group" style="color:var(--primary);margin-right:8px;"></i>Page Sections ({{ sections|length }})
+    </h2>
+</div>
+
+{% for sec in sections %}
+<div class="section-block">
+    <div class="section-header" onclick="this.nextElementSibling.classList.toggle('open')">
+        <div class="section-header-left">
+            <i class="fa-solid fa-{% if sec.type=='hero' %}star{% elif sec.type=='services' %}gears{% elif sec.type=='about' %}user{% elif sec.type=='portfolio' %}briefcase{% elif sec.type=='contact' %}envelope{% else %}file-lines{% endif %}" style="color:var(--primary);"></i>
+            <strong>{{ sec.heading or '(No heading)' }}</strong>
+            <span class="type-badge">{{ sec.type }}</span>
+            {% if not sec.enabled %}<span class="badge badge-red" style="font-size:0.7rem;">Hidden</span>{% endif %}
+        </div>
+        <i class="fa-solid fa-chevron-down" style="color:var(--muted);font-size:0.8rem;"></i>
+    </div>
+
+    <div class="section-body">
+        <form method="POST" action="/admin/sections/{{ sec.id }}" enctype="multipart/form-data">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Heading</label>
+                    <input type="text" name="heading" value="{{ sec.heading }}">
+                </div>
+                <div class="form-group">
+                    <label>Subheading</label>
+                    <input type="text" name="subheading" value="{{ sec.subheading }}">
+                </div>
+
+                <div class="form-group full">
+                    <label>Content <span style="color:var(--text-muted); font-size:0.78rem; font-weight:400;">— select text then use toolbar to style it</span></label>
+                    <div id="editor-{{ sec.id }}">{{ sec.content | safe }}</div>
+                    <input type="hidden" name="content" id="content-{{ sec.id }}">
+                </div>
+
+                <div class="form-group">
+                    <label>Button Text</label>
+                    <input type="text" name="button_text" value="{{ sec.button_text or '' }}" placeholder="e.g. Learn More">
+                </div>
+                <div class="form-group">
+                    <label>Button Link</label>
+                    <div style="position:relative;">
+                        <input type="text" name="button_link" value="{{ sec.button_link or '' }}"
+                               placeholder="e.g. /contact  or  https://example.com"
+                               style="padding-right:90px;"
+                               oninput="detectExternal(this)">
+                        <span id="extBadge-{{ sec.id }}" style="
+                            display:{% if sec.button_link and sec.button_link.startswith('http') %}inline-flex{% else %}none{% endif %};
+                            position:absolute; right:10px; top:50%; transform:translateY(-50%);
+                            align-items:center; gap:4px;
+                            background:var(--primary)20; color:var(--primary);
+                            font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px;
+                            pointer-events:none; text-transform:uppercase; letter-spacing:0.04em;">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> External
+                        </span>
+                    </div>
+                    <span class="form-hint">Internal: <code>/about</code> &nbsp;|&nbsp; External: <code>https://example.com</code> &nbsp;|&nbsp; Anchor: <code>#contact</code></span>
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                    <div class="checkbox-row">
+                        <input type="checkbox" name="button_new_tab" id="newtab-{{ sec.id }}"
+                               {% if sec.get('button_new_tab') %}checked{% endif %}>
+                        <label for="newtab-{{ sec.id }}">
+                            <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--primary);margin-right:4px;"></i>
+                            Open link in new tab &nbsp;<span style="color:var(--muted);font-size:0.82rem;">(recommended for external links)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Section Image</label>
+                    <input type="file" name="image" accept="image/*">
+                    {% if sec.image_url %}<span class="form-hint">Current: {{ sec.image_url }}</span>{% endif %}
+                </div>
+            </div>
+
+            <div class="checkbox-row" style="margin: 16px 0;">
+                <input type="checkbox" name="enabled" id="en-{{ sec.id }}" {% if sec.enabled %}checked{% endif %}>
+                <label for="en-{{ sec.id }}">Section visible on site</label>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:8px;">
+                <button type="submit" class="btn btn-primary btn-sm"
+                    onclick="document.getElementById('content-{{ sec.id }}').value=quills['{{ sec.id }}'].root.innerHTML;">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Section
+                </button>
+                <form method="POST" action="/admin/sections/{{ sec.id }}/delete" style="margin:0;" onsubmit="return confirm('Delete this section?');">
+                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i> Delete</button>
+                </form>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+<!-- ADD SECTION -->
+<div class="card">
+    <div class="card-title"><i class="fa-solid fa-plus"></i> Add New Section</div>
+    <form method="POST" action="/admin/sections/add/{{ page.id }}">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px;">
+            {% for t, label, icon in [
+                ('hero','Hero / Banner','star'),
+                ('content','Content Block','file-lines'),
+                ('services','Services','gears'),
+                ('about','About','user'),
+                ('portfolio','Portfolio','briefcase'),
+                ('contact','Contact','envelope')
+            ] %}
+            <label style="border:2px solid var(--border); border-radius:8px; padding:14px; text-align:center; cursor:pointer; transition:0.15s;" onclick="this.parentElement.querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)'); this.style.borderColor='var(--primary)';">
+                <input type="radio" name="type" value="{{ t }}" style="display:none;" {% if loop.first %}checked{% endif %}>
+                <i class="fa-solid fa-{{ icon }}" style="display:block; font-size:1.4rem; color:var(--primary); margin-bottom:6px;"></i>
+                <span style="font-size:0.78rem; font-weight:600; color:var(--text);">{{ label }}</span>
+            </label>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Section</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Color palettes (like Word / Google Docs) ────────────────────────────────
+const TEXT_COLORS = [
+    '#000000','#1a1a1a','#333333','#555555','#777777','#999999','#bbbbbb','#dddddd','#f0f0f0','#ffffff',
+    '#DC143C','#c0392b','#e74c3c','#ff6b6b','#ff9999','#ffcccc',
+    '#e67e22','#f39c12','#f1c40f','#ffd93d','#ffe599','#fff2cc',
+    '#27ae60','#2ecc71','#a8e063','#d5f5d5','#1abc9c','#76d7c4',
+    '#2980b9','#3498db','#74b9ff','#a8d8ea','#0984e3','#6c5ce7',
+    '#8e44ad','#9b59b6','#c39bd3','#d7bde2','#fd79a8','#fab1c6',
+    '#2c3e50','#34495e','#7f8c8d','#95a5a6',
+];
+const BG_COLORS = [
+    'transparent',
+    '#ffeaa7','#fdcb6e','#e17055','#fab1c6','#fd79a8',
+    '#74b9ff','#a8d8ea','#81ecec','#00cec9',
+    '#55efc4','#00b894','#d5f5d5',
+    '#dfe6e9','#b2bec3','#636e72',
+    '#2d3436','#1a1a2e','#0f3460',
+    '#ffefd5','#ffe4e1','#e6e6fa','#f0fff0',
+];
+
+// ── Quill font & size registrations ────────────────────────────────────────
+const SizeStyle = Quill.import('attributors/style/size');
+SizeStyle.whitelist = ['10px','12px','14px','16px','18px','20px','24px','28px','32px','36px','48px','64px'];
+Quill.register(SizeStyle, true);
+
+const FontStyle = Quill.import('attributors/style/font');
+FontStyle.whitelist = ['', 'Arial','Georgia','Times New Roman','Courier New','Trebuchet MS','Verdana','Impact','Comic Sans MS'];
+Quill.register(FontStyle, true);
+
+// ── Toolbar options ──────────────────────────────────────────────────────────
+const TOOLBAR_OPTIONS = [
+    [{ font: FontStyle.whitelist }],
+    [{ size: SizeStyle.whitelist }],
+    [{ header: [1, 2, 3, 4, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ color: TEXT_COLORS }, { background: BG_COLORS }],
+    [{ align: [] }],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    [{ indent: '-1' }, { indent: '+1' }],
+    ['blockquote', 'code-block'],
+    ['link'],
+    ['clean'],
+];
+
+// ── Init all editors ────────────────────────────────────────────────────────
+const quills = {};
+{% for sec in sections %}
+(function() {
+    var q = new Quill('#editor-{{ sec.id }}', {
+        theme: 'snow',
+        placeholder: 'Type your content here — select text and use the toolbar to style it...',
+        modules: { toolbar: TOOLBAR_OPTIONS }
+    });
+    quills['{{ sec.id }}'] = q;
+
+    // Style font picker items to show actual fonts
+    var fontPicker = document.querySelector('#editor-{{ sec.id }}').previousSibling;
+    setTimeout(function() {
+        document.querySelectorAll('#editor-{{ sec.id }}').forEach(function(ed) {
+            var container = ed.closest('.ql-container') || ed.previousElementSibling;
+        });
+    }, 100);
+})();
+{% endfor %}
+
+// ── Apply font styles to picker items after DOM ready ───────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        // Font family: show actual font in picker
+        document.querySelectorAll('.ql-font .ql-picker-item').forEach(function(item) {
+            var font = item.getAttribute('data-value');
+            if (font) item.style.fontFamily = font;
+        });
+        // Background color: show transparent as checkerboard
+        document.querySelectorAll('.ql-background .ql-picker-item[data-value="transparent"]').forEach(function(item) {
+            item.style.background = 'linear-gradient(45deg,#ccc 25%,transparent 25%,transparent 75%,#ccc 75%),linear-gradient(45deg,#ccc 25%,white 25%,white 75%,#ccc 75%)';
+            item.style.backgroundSize = '8px 8px';
+            item.style.backgroundPosition = '0 0, 4px 4px';
+        });
+    }, 200);
+});
+
+// ── Detect external links ───────────────────────────────────────────────────
+function detectExternal(input) {
+    const val = input.value.trim();
+    const isExternal = val.startsWith('http://') || val.startsWith('https://');
+    const group = input.closest('.form-group');
+    const badge = group ? group.querySelector('[id^="extBadge-"]') : null;
+    if (badge) badge.style.display = isExternal ? 'inline-flex' : 'none';
+    const form = input.closest('form');
+    if (form && isExternal) {
+        const cb = form.querySelector('[name="button_new_tab"]');
+        if (cb) cb.checked = true;
+    }
+}
+</script>
+{% endblock %}
 <style>
     .ql-toolbar { background: var(--bg); border-color: var(--border) !important; border-radius: 6px 6px 0 0; }
     .ql-container { background: var(--bg); border-color: var(--border) !important; border-radius: 0 0 6px 6px; color: var(--text); min-height: 120px; }
