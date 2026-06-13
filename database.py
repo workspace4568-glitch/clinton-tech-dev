@@ -413,18 +413,28 @@ def get_all_portfolio_items(conn):
 
 def count(conn, table):
     cur = conn.cursor()
-    cur.execute(f"SELECT COUNT(*) FROM {table}")
+    cur.execute(f"SELECT COUNT(*) AS n FROM {table}")
     r = cur.fetchone()
-    return r[0] if r else 0
+    if r is None:
+        return 0
+    # RealDictCursor (Postgres) returns a dict; sqlite3.Row supports index access
+    try:
+        return r['n']
+    except (KeyError, TypeError):
+        return r[0]
 
 def last_insert_id(conn, table='pages'):
     """Get last inserted ID — handles SQLite and PostgreSQL."""
     cur = conn.cursor()
     if USE_POSTGRES:
-        cur.execute(f"SELECT lastval()")
+        cur.execute("SELECT lastval() AS id")
     else:
-        cur.execute("SELECT last_insert_rowid()")
-    return cur.fetchone()[0]
+        cur.execute("SELECT last_insert_rowid() AS id")
+    r = cur.fetchone()
+    try:
+        return r['id']
+    except (KeyError, TypeError):
+        return r[0]
 
 # ── Gallery ───────────────────────────────────────────────────────────────────
 _GALLERY_SQLITE = """
@@ -472,7 +482,8 @@ def get_gallery_items(conn, category=None, enabled_only=True):
 def get_gallery_categories(conn):
     cur = conn.cursor()
     cur.execute("SELECT DISTINCT category FROM gallery_items WHERE enabled=1 ORDER BY category")
-    return [r[0] for r in cur.fetchall()]
+    rows = cur.fetchall()
+    return [r['category'] if hasattr(r, 'keys') else r[0] for r in rows]
 
 def get_all_gallery_items(conn):
     cur = conn.cursor()
