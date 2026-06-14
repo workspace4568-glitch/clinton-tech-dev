@@ -1012,13 +1012,13 @@
                 <label for="en-{{ sec.id }}">Section visible on site</label>
             </div>
             <div style="display:flex; gap:10px; margin-top:8px;">
-                <button type="submit" class="btn btn-primary btn-sm"
-                    onclick="document.getElementById('content-{{ sec.id }}').value=quills['{{ sec.id }}'].root.innerHTML;">
+                <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fa-solid fa-floppy-disk"></i> Save Section
                 </button>
-                <form method="POST" action="/admin/sections/{{ sec.id }}/delete" style="margin:0;" onsubmit="return confirm('Delete this section?');">
-                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i> Delete</button>
-                </form>
+                <button type="button" class="btn btn-danger btn-sm"
+                    onclick="if(confirm('Delete this section?')){var f=document.createElement('form');f.method='POST';f.action='/admin/sections/{{ sec.id }}/delete';document.body.appendChild(f);f.submit();}">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
             </div>
         </form>
     </div>
@@ -1132,6 +1132,19 @@ const quills = {};
     }, 100);
 })();
 {% endfor %}
+
+// ── Sync ALL Quill editors to hidden fields on form submit ─────────────────
+document.querySelectorAll('form[action*="/admin/sections/"]').forEach(function(form) {
+    form.addEventListener('submit', function() {
+        var actionMatch = form.action.match(/\/admin\/sections\/(\d+)$/);
+        if (!actionMatch) return;
+        var secId = actionMatch[1];
+        if (quills[secId]) {
+            var hiddenInput = document.getElementById('content-' + secId);
+            if (hiddenInput) hiddenInput.value = quills[secId].root.innerHTML;
+        }
+    });
+});
 
 // ── Apply font styles to picker items after DOM ready ───────────────────────
 window.addEventListener('DOMContentLoaded', function() {
