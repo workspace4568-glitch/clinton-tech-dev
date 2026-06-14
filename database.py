@@ -121,7 +121,17 @@ _SQLITE_SCHEMA = """
         card_transition_speed TEXT DEFAULT 'normal',
         button_text TEXT DEFAULT '',
         button_link TEXT DEFAULT '',
-        button_new_tab INTEGER DEFAULT 0
+        button_new_tab INTEGER DEFAULT 0,
+        heading_color TEXT DEFAULT '',
+        heading_align TEXT DEFAULT 'left',
+        subheading_color TEXT DEFAULT '',
+        card_bg_color TEXT DEFAULT '',
+        card_border_width INTEGER DEFAULT 0,
+        card_border_color TEXT DEFAULT '',
+        card_border_radius INTEGER DEFAULT 8,
+        image_urls TEXT DEFAULT '',
+        image_collage TEXT DEFAULT 'single',
+        gallery_preset TEXT DEFAULT 'masonry'
     );
     CREATE TABLE IF NOT EXISTS nav_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -299,6 +309,16 @@ def _migrate(conn):
         ("sections", "card_hover_color",         "TEXT DEFAULT ''"),
         ("sections", "card_hover_font_color",    "TEXT DEFAULT ''"),
         ("sections", "card_transition_speed",    "TEXT DEFAULT 'normal'"),
+        ("sections", "heading_color",              "TEXT DEFAULT ''"),
+        ("sections", "heading_align",              "TEXT DEFAULT 'left'"),
+        ("sections", "subheading_color",           "TEXT DEFAULT ''"),
+        ("sections", "card_bg_color",              "TEXT DEFAULT ''"),
+        ("sections", "card_border_width",          "INTEGER DEFAULT 0"),
+        ("sections", "card_border_color",          "TEXT DEFAULT ''"),
+        ("sections", "card_border_radius",         "INTEGER DEFAULT 8"),
+        ("sections", "image_urls",                 "TEXT DEFAULT ''"),
+        ("sections", "image_collage",              "TEXT DEFAULT 'single'"),
+        ("sections", "gallery_preset",             "TEXT DEFAULT 'masonry'"),
     ]
     for table, col, col_def in migrations:
         if USE_POSTGRES:
@@ -332,6 +352,10 @@ _SECTION_DEFAULTS = {
     'icon_style': 'default', 'icon_border': 'none', 'icon_hover': 'zoom',
     'button_text': '', 'button_link': '', 'button_new_tab': 0,
     'heading': '', 'subheading': '', 'content': '', 'enabled': 1,
+    'heading_color': '', 'heading_align': 'left',
+    'subheading_color': '', 'card_bg_color': '',
+    'card_border_width': 0, 'card_border_color': '', 'card_border_radius': 8,
+    'image_urls': '', 'image_collage': 'single', 'gallery_preset': 'masonry',
 }
 
 def _section(d):
