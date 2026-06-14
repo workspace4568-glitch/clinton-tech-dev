@@ -1,31 +1,310 @@
 {% extends 'admin/base.html' %}
 {% block title %}New Page{% endblock %}
-{% block page_title %}New Page{% endblock %}
+{% block page_title %}Create New Page{% endblock %}
+
+{% block extra_head %}
+<style>
+.template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+}
+.template-card {
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 0;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+    overflow: hidden;
+    background: var(--surface);
+    position: relative;
+}
+.template-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+.template-card.selected {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+.template-card input[type=radio] { display:none; }
+.template-preview {
+    height: 110px;
+    background: var(--surface2);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px;
+    overflow: hidden;
+}
+.template-check {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 22px; height: 22px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.65rem;
+}
+.template-card.selected .template-check { display: flex; }
+.preview-bar { border-radius: 3px; background: var(--primary); opacity: 0.7; }
+.preview-block { border-radius: 4px; background: var(--border); }
+.preview-img   { border-radius: 4px; background: linear-gradient(135deg, var(--primary)44, var(--accent, var(--primary))22); }
+.preview-grid  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+.preview-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.template-info {
+    padding: 12px 14px 14px;
+}
+.template-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.template-name i { color: var(--primary); font-size: 0.8rem; }
+.template-desc {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+.template-sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+}
+.section-tag {
+    font-size: 0.62rem;
+    font-weight: 600;
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    color: var(--primary);
+    border-radius: 20px;
+    padding: 2px 8px;
+    letter-spacing: 0.02em;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card" style="max-width:600px;">
-    <div class="card-title"><i class="fa-solid fa-plus"></i> Create New Page</div>
-    <form method="POST">
-        <div class="form-group" style="margin-bottom:20px;">
-            <label>Page Title</label>
-            <input type="text" name="title" placeholder="e.g. About Us" required>
+<div class="card" style="max-width:780px;">
+    <div class="card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Create New Page</div>
+
+    <form method="POST" id="new-page-form">
+
+        <!-- Step 1: Page details -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
+            <div class="form-group">
+                <label>Page Title <span style="color:var(--danger);">*</span></label>
+                <input type="text" name="title" id="title-input" placeholder="e.g. Our Gallery" required
+                    style="font-size:1rem;">
+            </div>
+            <div class="form-group">
+                <label>URL Slug <span style="color:var(--danger);">*</span></label>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="color:var(--text-muted);font-size:0.82rem;white-space:nowrap;">/page/</span>
+                    <input type="text" name="slug" id="slug-input" placeholder="our-gallery" required
+                        pattern="[a-z0-9\-]+" style="flex:1;">
+                </div>
+                <span class="form-hint">Auto-filled from title. Lowercase, hyphens only.</span>
+            </div>
         </div>
-        <div class="form-group" style="margin-bottom:24px;">
-            <label>URL Slug</label>
-            <input type="text" name="slug" placeholder="e.g. about-us" required pattern="[a-z0-9\-]+">
-            <span class="form-hint">Lowercase letters, numbers, and hyphens only. Example: <code>about-us</code></span>
+
+        <!-- Step 2: Template picker -->
+        <div style="margin-bottom:8px;">
+            <label style="font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);">
+                <i class="fa-solid fa-table-columns" style="color:var(--primary);margin-right:6px;"></i>
+                Choose a Starting Template
+            </label>
+            <p style="font-size:0.78rem;color:var(--text-muted);margin:4px 0 14px;">
+                Pick a layout — sections are pre-built and fully editable after creation.
+            </p>
         </div>
-        <div style="display:flex; gap:12px;">
-            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Create Page</button>
+
+        <div class="template-grid">
+
+            <!-- Blank -->
+            <label class="template-card selected" onclick="selectCard(this)">
+                <input type="radio" name="page_template" value="blank" checked>
+                <div class="template-check"><i class="fa-solid fa-check"></i></div>
+                <div class="template-preview">
+                    <div class="preview-bar" style="height:10px;width:55%;"></div>
+                    <div class="preview-bar" style="height:6px;width:35%;opacity:0.35;"></div>
+                    <div style="margin-top:8px;">
+                        <div class="preview-block" style="height:6px;width:90%;margin-bottom:4px;"></div>
+                        <div class="preview-block" style="height:6px;width:75%;margin-bottom:4px;"></div>
+                        <div class="preview-block" style="height:6px;width:55%;"></div>
+                    </div>
+                </div>
+                <div class="template-info">
+                    <div class="template-name"><i class="fa-solid fa-file"></i> Blank Page</div>
+                    <div class="template-desc">Start with a hero + one content block. Total creative control.</div>
+                    <div class="template-sections">
+                        <span class="section-tag">Hero</span>
+                        <span class="section-tag">Content</span>
+                    </div>
+                </div>
+            </label>
+
+            <!-- Gallery -->
+            <label class="template-card" onclick="selectCard(this)">
+                <input type="radio" name="page_template" value="gallery">
+                <div class="template-check"><i class="fa-solid fa-check"></i></div>
+                <div class="template-preview">
+                    <div class="preview-bar" style="height:10px;width:40%;margin-bottom:8px;"></div>
+                    <div class="preview-grid">
+                        <div class="preview-img" style="height:28px;"></div>
+                        <div class="preview-img" style="height:28px;opacity:0.7;"></div>
+                        <div class="preview-img" style="height:28px;opacity:0.5;"></div>
+                        <div class="preview-img" style="height:28px;opacity:0.4;"></div>
+                        <div class="preview-img" style="height:28px;opacity:0.6;"></div>
+                        <div class="preview-img" style="height:28px;opacity:0.3;"></div>
+                    </div>
+                </div>
+                <div class="template-info">
+                    <div class="template-name"><i class="fa-solid fa-images"></i> Gallery Page</div>
+                    <div class="template-desc">Image grid with 6 layout presets — masonry, filmstrip, hero &amp; more.</div>
+                    <div class="template-sections">
+                        <span class="section-tag">Gallery</span>
+                    </div>
+                </div>
+            </label>
+
+            <!-- Landing -->
+            <label class="template-card" onclick="selectCard(this)">
+                <input type="radio" name="page_template" value="landing">
+                <div class="template-check"><i class="fa-solid fa-check"></i></div>
+                <div class="template-preview">
+                    <div class="preview-bar" style="height:10px;width:60%;margin-bottom:4px;"></div>
+                    <div class="preview-bar" style="height:5px;width:40%;opacity:0.4;margin-bottom:8px;"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin-bottom:5px;">
+                        <div class="preview-block" style="height:20px;border-radius:3px;"></div>
+                        <div class="preview-block" style="height:20px;border-radius:3px;opacity:0.6;"></div>
+                        <div class="preview-block" style="height:20px;border-radius:3px;opacity:0.4;"></div>
+                    </div>
+                    <div class="preview-block" style="height:6px;width:80%;"></div>
+                </div>
+                <div class="template-info">
+                    <div class="template-name"><i class="fa-solid fa-rocket"></i> Landing Page</div>
+                    <div class="template-desc">Full marketing layout — hero, services, about, and contact ready to go.</div>
+                    <div class="template-sections">
+                        <span class="section-tag">Hero</span>
+                        <span class="section-tag">Services</span>
+                        <span class="section-tag">About</span>
+                        <span class="section-tag">Contact</span>
+                    </div>
+                </div>
+            </label>
+
+            <!-- About -->
+            <label class="template-card" onclick="selectCard(this)">
+                <input type="radio" name="page_template" value="about">
+                <div class="template-check"><i class="fa-solid fa-check"></i></div>
+                <div class="template-preview">
+                    <div class="preview-bar" style="height:10px;width:45%;margin-bottom:6px;"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+                        <div>
+                            <div class="preview-block" style="height:5px;width:100%;margin-bottom:3px;"></div>
+                            <div class="preview-block" style="height:5px;width:80%;margin-bottom:3px;"></div>
+                            <div class="preview-block" style="height:5px;width:60%;"></div>
+                        </div>
+                        <div class="preview-img" style="height:38px;border-radius:4px;"></div>
+                    </div>
+                    <div class="preview-grid" style="margin-top:6px;">
+                        <div class="preview-img" style="height:18px;opacity:0.5;"></div>
+                        <div class="preview-img" style="height:18px;opacity:0.4;"></div>
+                        <div class="preview-img" style="height:18px;opacity:0.3;"></div>
+                    </div>
+                </div>
+                <div class="template-info">
+                    <div class="template-name"><i class="fa-solid fa-user-group"></i> About Page</div>
+                    <div class="template-desc">Tell your story — hero, our story section, and a portfolio showcase.</div>
+                    <div class="template-sections">
+                        <span class="section-tag">Hero</span>
+                        <span class="section-tag">About</span>
+                        <span class="section-tag">Portfolio</span>
+                    </div>
+                </div>
+            </label>
+
+            <!-- Portfolio -->
+            <label class="template-card" onclick="selectCard(this)">
+                <input type="radio" name="page_template" value="portfolio">
+                <div class="template-check"><i class="fa-solid fa-check"></i></div>
+                <div class="template-preview">
+                    <div class="preview-bar" style="height:10px;width:50%;margin-bottom:8px;"></div>
+                    <div class="preview-grid2" style="gap:5px;margin-bottom:5px;">
+                        <div class="preview-img" style="height:24px;"></div>
+                        <div class="preview-img" style="height:24px;opacity:0.6;"></div>
+                    </div>
+                    <div class="preview-grid" style="gap:3px;">
+                        <div class="preview-img" style="height:16px;opacity:0.5;"></div>
+                        <div class="preview-img" style="height:16px;opacity:0.4;"></div>
+                        <div class="preview-img" style="height:16px;opacity:0.3;"></div>
+                    </div>
+                </div>
+                <div class="template-info">
+                    <div class="template-name"><i class="fa-solid fa-briefcase"></i> Portfolio Page</div>
+                    <div class="template-desc">Showcase your projects with a portfolio grid and image gallery.</div>
+                    <div class="template-sections">
+                        <span class="section-tag">Hero</span>
+                        <span class="section-tag">Portfolio</span>
+                        <span class="section-tag">Gallery</span>
+                    </div>
+                </div>
+            </label>
+
+        </div>
+
+        <div style="display:flex; gap:12px; align-items:center; margin-top:4px;">
+            <button type="submit" class="btn btn-primary" style="font-size:0.95rem;padding:12px 28px;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Create Page
+            </button>
             <a href="/admin/pages" class="btn btn-secondary">Cancel</a>
+            <span id="create-hint" style="font-size:0.78rem;color:var(--text-muted);margin-left:4px;"></span>
         </div>
+
     </form>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-document.querySelector('[name=title]').addEventListener('input', function() {
-    document.querySelector('[name=slug]').value = this.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
+// Auto-fill slug from title
+document.getElementById('title-input').addEventListener('input', function() {
+    document.getElementById('slug-input').value =
+        this.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
+});
+
+// Template card selection
+function selectCard(label) {
+    document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+    label.classList.add('selected');
+    label.querySelector('input[type=radio]').checked = true;
+    // Update hint
+    const name = label.querySelector('.template-name').innerText.trim();
+    const tags = [...label.querySelectorAll('.section-tag')].map(t=>t.innerText).join(', ');
+    document.getElementById('create-hint').textContent = `"${name}" — creates: ${tags}`;
+}
+
+// Keyboard accessibility for cards
+document.querySelectorAll('.template-card').forEach(card => {
+    card.addEventListener('keydown', e => {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); selectCard(card); }
+    });
+    card.setAttribute('tabindex', '0');
+});
+
+// Radio label style sync on load
+document.querySelectorAll('.template-card input').forEach(r => {
+    if (r.checked) r.closest('.template-card').classList.add('selected');
 });
 </script>
 {% endblock %}
