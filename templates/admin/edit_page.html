@@ -132,7 +132,34 @@
             <span class="type-badge">{{ sec.type }}</span>
             {% if not sec.enabled %}<span class="badge badge-red" style="font-size:0.7rem;">Hidden</span>{% endif %}
         </div>
-        <i class="fa-solid fa-chevron-down" style="color:var(--muted);font-size:0.8rem;"></i>
+        <div style="display:flex;align-items:center;gap:6px;" onclick="event.stopPropagation()">
+            <span style="font-size:0.7rem;color:var(--muted);margin-right:2px;">Layer</span>
+            {% if not loop.first %}
+            <form method="POST" action="/admin/sections/{{ sec.id }}/move" style="display:inline;">
+                <input type="hidden" name="direction" value="up">
+                <button type="submit" title="Move section up" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text);font-size:0.8rem;line-height:1;" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background='none'">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+            </form>
+            {% else %}
+            <button disabled title="Already at top" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:not-allowed;color:var(--muted);font-size:0.8rem;line-height:1;opacity:0.4;">
+                <i class="fa-solid fa-arrow-up"></i>
+            </button>
+            {% endif %}
+            {% if not loop.last %}
+            <form method="POST" action="/admin/sections/{{ sec.id }}/move" style="display:inline;">
+                <input type="hidden" name="direction" value="down">
+                <button type="submit" title="Move section down" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:pointer;color:var(--text);font-size:0.8rem;line-height:1;" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background='none'">
+                    <i class="fa-solid fa-arrow-down"></i>
+                </button>
+            </form>
+            {% else %}
+            <button disabled title="Already at bottom" style="background:none;border:1px solid var(--border);border-radius:5px;padding:3px 8px;cursor:not-allowed;color:var(--muted);font-size:0.8rem;line-height:1;opacity:0.4;">
+                <i class="fa-solid fa-arrow-down"></i>
+            </button>
+            {% endif %}
+            <i class="fa-solid fa-chevron-down" style="color:var(--muted);font-size:0.8rem;margin-left:4px;"></i>
+        </div>
     </div>
 
     <div class="section-body">
@@ -150,7 +177,7 @@
                 <div class="form-group full">
                     <label>Content <span style="color:var(--text-muted); font-size:0.78rem; font-weight:400;">— select text then use toolbar to style it</span></label>
                     <div id="editor-{{ sec.id }}">{{ sec.content | safe }}</div>
-                    <input type="hidden" name="content" id="content-{{ sec.id }}">
+                    <input type="hidden" name="content" id="content-{{ sec.id }}" value="{{ sec.content | e }}">
                 </div>
 
                 <div class="form-group">
@@ -1141,6 +1168,11 @@ function initQuillForSection(secId) {
             if (hiddenInput) hiddenInput.value = q.root.innerHTML;
         });
     }
+    // Also sync immediately in case submit fires before listener runs
+    var hiddenInput = document.getElementById('content-' + secId);
+    if (hiddenInput) {
+        Object.defineProperty(hiddenInput, '_quill', { value: q, writable: true });
+    }
 }
 
 // ── Hook section header clicks to lazy-init Quill ────────────────────────────
@@ -1173,6 +1205,22 @@ window.addEventListener('DOMContentLoaded', function() {
             item.style.backgroundPosition = '0 0, 4px 4px';
         });
     }, 200);
+});
+
+// ── Global section form submit: sync ALL open Quill editors ─────────────────
+document.querySelectorAll('form[action*="/admin/sections/"]').forEach(function(form) {
+    form.addEventListener('submit', function() {
+        var match = form.action.match(/\/admin\/sections\/(\d+)$/);
+        if (!match) return;
+        var secId = match[1];
+        var hiddenInput = document.getElementById('content-' + secId);
+        if (!hiddenInput) return;
+        // If Quill is initialized for this section, sync now
+        if (quills[secId]) {
+            hiddenInput.value = quills[secId].root.innerHTML;
+        }
+        // If Quill not yet init'd, the pre-populated value is already correct
+    });
 });
 
 // ── Detect external links ───────────────────────────────────────────────────
