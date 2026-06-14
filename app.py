@@ -515,7 +515,7 @@ def admin_delete_section(section_id):
 def admin_add_section_card(section_id):
     f = request.form
     with db() as conn:
-        sec = dict(conn.cursor().execute("SELECT page_id FROM sections WHERE id=?", (section_id,)).fetchone())
+        sec = dict(execute(conn, "SELECT page_id FROM sections WHERE id=?", (section_id,)).fetchone())
         n = count(conn, 'section_cards')
         # Handle image upload
         img_url = ''
@@ -537,9 +537,7 @@ def admin_add_section_card(section_id):
 def admin_update_section_card(card_id):
     f = request.form
     with db() as conn:
-        row = dict(conn.cursor().execute(
-            "SELECT sc.*, s.page_id FROM section_cards sc JOIN sections s ON sc.section_id=s.id WHERE sc.id=?", (card_id,)
-        ).fetchone())
+        row = dict(execute(conn, "SELECT sc.*, s.page_id FROM section_cards sc JOIN sections s ON sc.section_id=s.id WHERE sc.id=?", (card_id,)).fetchone())
         img_url = row.get('image_url', '')
         img_file = request.files.get('image')
         if img_file and img_file.filename and allowed_file(img_file.filename):
@@ -561,9 +559,7 @@ def admin_update_section_card(card_id):
 @admin_required
 def admin_delete_section_card(card_id):
     with db() as conn:
-        row = conn.cursor().execute(
-            "SELECT sc.section_id, s.page_id FROM section_cards sc JOIN sections s ON sc.section_id=s.id WHERE sc.id=?", (card_id,)
-        ).fetchone()
+        row = execute(conn, "SELECT sc.section_id, s.page_id FROM section_cards sc JOIN sections s ON sc.section_id=s.id WHERE sc.id=?", (card_id,)).fetchone()
         page_id = dict(row)['page_id'] if row else None
         execute(conn, "DELETE FROM section_cards WHERE id=?", (card_id,))
     flash('Card deleted.', 'success')
@@ -576,7 +572,7 @@ def admin_delete_section_card(card_id):
 def admin_add_section_button(section_id):
     f = request.form
     with db() as conn:
-        row = conn.cursor().execute("SELECT page_id FROM sections WHERE id=?", (section_id,)).fetchone()
+        row = execute(conn, "SELECT page_id FROM sections WHERE id=?", (section_id,)).fetchone()
         n = count(conn, 'section_buttons')
         sql = ("INSERT INTO section_buttons "
                "(section_id,label,url,new_tab,style,color,color2,text_color,size,icon,icon_pos,animation,border_radius,ord) "
@@ -597,9 +593,7 @@ def admin_add_section_button(section_id):
 def admin_update_section_button(btn_id):
     f = request.form
     with db() as conn:
-        row = conn.cursor().execute(
-            "SELECT sb.*, s.page_id FROM section_buttons sb JOIN sections s ON sb.section_id=s.id WHERE sb.id=?",
-            (btn_id,)).fetchone()
+        row = execute(conn, "SELECT sb.*, s.page_id FROM section_buttons sb JOIN sections s ON sb.section_id=s.id WHERE sb.id=?", (btn_id,)).fetchone()
         sql = ("UPDATE section_buttons SET "
                "label=?,url=?,new_tab=?,style=?,color=?,color2=?,text_color=?,size=?,"
                "icon=?,icon_pos=?,animation=?,border_radius=? WHERE id=?")
@@ -618,9 +612,7 @@ def admin_update_section_button(btn_id):
 @admin_required
 def admin_delete_section_button(btn_id):
     with db() as conn:
-        row = conn.cursor().execute(
-            "SELECT sb.section_id, s.page_id FROM section_buttons sb JOIN sections s ON sb.section_id=s.id WHERE sb.id=?",
-            (btn_id,)).fetchone()
+        row = execute(conn, "SELECT sb.section_id, s.page_id FROM section_buttons sb JOIN sections s ON sb.section_id=s.id WHERE sb.id=?", (btn_id,)).fetchone()
         page_id = dict(row)['page_id'] if row else None
         execute(conn, "DELETE FROM section_buttons WHERE id=?", (btn_id,))
     flash('Button deleted.', 'success')
