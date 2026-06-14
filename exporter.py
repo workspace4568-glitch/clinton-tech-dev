@@ -104,10 +104,6 @@ def _rewrite_html(html: str, depth: int) -> str:
     return html
 
 
-
-    return html
-
-
 class _AssetFinder(HTMLParser):
     """Parse HTML and collect all local asset URLs (src, href for css/fonts)."""
     def __init__(self):
@@ -200,7 +196,8 @@ def export_static(app, out_dir: str) -> dict:
                         rel_path = 'gallery/index.html'
                         depth = 1
                 else:
-                    slug = path_part.lstrip('/page/')
+                    # Use removeprefix-safe slice to avoid lstrip char-stripping bug
+                    slug = path_part[6:] if path_part.startswith('/page/') else path_part.lstrip('/')
                     rel_path = f"{slug}/index.html"
                     depth = 1
 
