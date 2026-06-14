@@ -1,128 +1,328 @@
 {% extends 'site/base.html' %}
 {% block content %}
 
-<!-- PAGE HERO -->
-<section style="padding: 80px 0 48px; background: var(--text)04; border-bottom: 1px solid var(--border);">
+<section style="padding:80px 0 48px;background:var(--text)04;border-bottom:1px solid var(--border);">
     <div class="container">
         <h1 class="section-heading">{{ page.title }}</h1>
-        <nav style="font-size:0.85rem; color:var(--text-muted);">
-            <a href="/">Home</a> <i class="fa-solid fa-chevron-right" style="font-size:0.65rem; margin: 0 6px;"></i>
+        <nav style="font-size:0.85rem;color:var(--text-muted);">
+            <a href="/">Home</a>
+            <i class="fa-solid fa-chevron-right" style="font-size:0.65rem;margin:0 6px;"></i>
             {{ page.title }}
         </nav>
     </div>
 </section>
 
 <style>
-/* ── Collage layouts ───────────────────────────────── */
-.collage-grid { display:grid; gap:8px; margin-bottom:28px; border-radius:var(--radius); overflow:hidden; }
-.collage-grid img { width:100%; height:100%; object-fit:cover; display:block; }
-.collage-2    { grid-template-columns:1fr 1fr; }
-.collage-3    { grid-template-columns:2fr 1fr; grid-template-rows:1fr 1fr; }
-.collage-3 img:first-child { grid-row:1/3; }
-.collage-4    { grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; }
-.collage-5    { grid-template-columns:2fr 1fr 1fr; grid-template-rows:1fr 1fr; }
-.collage-5 img:first-child { grid-row:1/3; }
-/* ── Gallery presets ────────────────────────────────── */
-.gallery-masonry  { columns:3; column-gap:12px; }
-.gallery-masonry  .g-item { break-inside:avoid; margin-bottom:12px; }
-.gallery-masonry  img { width:100%; border-radius:var(--radius); display:block; }
-.gallery-grid2    { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
-.gallery-grid3    { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-.gallery-grid4    { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
-.gallery-grid2 img,.gallery-grid3 img,.gallery-grid4 img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:var(--radius); display:block; }
-.gallery-filmstrip { display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; }
-.gallery-filmstrip img { height:220px; width:auto; border-radius:var(--radius); flex-shrink:0; }
-.gallery-hero   { display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:auto auto; gap:8px; }
-.gallery-hero img:first-child { grid-column:1/3; grid-row:1/3; aspect-ratio:4/3; object-fit:cover; border-radius:var(--radius); }
-.gallery-hero img:not(:first-child) { aspect-ratio:1; object-fit:cover; border-radius:var(--radius); }
+/* ── Button styles ───────────────────────────────── */
+.sbtn { display:inline-flex;align-items:center;gap:8px;font-weight:600;cursor:pointer;text-decoration:none;transition:all 0.25s;white-space:nowrap;border:2px solid transparent; }
+.sbtn-sm  { padding:8px 18px;font-size:0.82rem;border-radius:6px; }
+.sbtn-md  { padding:12px 26px;font-size:0.95rem;border-radius:8px; }
+.sbtn-lg  { padding:15px 34px;font-size:1.05rem;border-radius:10px; }
+.sbtn-xl  { padding:18px 44px;font-size:1.15rem;border-radius:12px; }
+/* solid */
+.sbtn-solid { box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+.sbtn-solid:hover { filter:brightness(1.12);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.2); }
+/* outline */
+.sbtn-outline { background:transparent!important; }
+.sbtn-outline:hover { color:#fff!important; }
+/* ghost */
+.sbtn-ghost { background:transparent!important;border-color:transparent!important; }
+.sbtn-ghost:hover { background:rgba(255,255,255,0.12)!important; }
+/* soft */
+.sbtn-soft:hover { filter:brightness(0.9);transform:translateY(-1px); }
+/* gradient */
+.sbtn-gradient { border:none!important;box-shadow:0 4px 14px rgba(0,0,0,0.2); }
+.sbtn-gradient:hover { transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.3); }
+/* glass */
+.sbtn-glass { backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.25)!important; }
+.sbtn-glass:hover { background:rgba(255,255,255,0.25)!important;transform:translateY(-2px); }
+/* neon-glow */
+.sbtn-neon-glow { border:2px solid;animation:neonPulse 2s ease-in-out infinite alternate; }
+@keyframes neonPulse {
+  from { box-shadow:0 0 6px currentColor,0 0 12px currentColor,0 0 20px currentColor; }
+  to   { box-shadow:0 0 10px currentColor,0 0 22px currentColor,0 0 38px currentColor,inset 0 0 8px currentColor; }
+}
+/* rainbow */
+.sbtn-rainbow {
+  background:linear-gradient(90deg,#f43f5e,#f97316,#eab308,#22c55e,#3b82f6,#8b5cf6,#ec4899);
+  background-size:300% 100%;
+  animation:rainbowShift 3s linear infinite;
+  border:none!important;color:#fff!important;
+}
+@keyframes rainbowShift { 0%{background-position:0% 50%} 100%{background-position:300% 50%} }
+.sbtn-rainbow:hover { transform:scale(1.04);box-shadow:0 6px 20px rgba(0,0,0,0.25); }
+/* pulse */
+.sbtn-pulse { animation:btnPulse 2s ease-in-out infinite; }
+@keyframes btnPulse {
+  0%,100% { box-shadow:0 0 0 0 currentColor; }
+  50%      { box-shadow:0 0 0 10px rgba(0,0,0,0); }
+}
+/* shimmer */
+.sbtn-shimmer { position:relative;overflow:hidden; }
+.sbtn-shimmer::after {
+  content:'';position:absolute;top:0;left:-120%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.35) 50%,transparent 100%);
+  animation:shimmerSlide 2.2s ease-in-out infinite;
+}
+@keyframes shimmerSlide { 0%{left:-120%} 100%{left:120%} }
+/* 3d */
+.sbtn-3d { border:none!important;transform:translateY(0);box-shadow:0 6px 0 rgba(0,0,0,0.3); }
+.sbtn-3d:hover  { transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,0.3); }
+.sbtn-3d:active { transform:translateY(6px);box-shadow:none; }
+/* underline */
+.sbtn-underline { background:transparent!important;border:none!important;border-bottom:2.5px solid!important;border-radius:0!important;padding-left:0!important;padding-right:0!important; }
+.sbtn-underline:hover { border-bottom-width:3.5px!important;transform:translateY(-1px); }
+/* Button row */
+.sec-btn-row { display:flex;flex-wrap:wrap;gap:12px;margin-top:28px;align-items:center; }
+/* ── Collage ─────────────────────── */
+.collage-grid{display:grid;gap:8px;margin-bottom:28px;border-radius:var(--radius);overflow:hidden}
+.collage-grid img{width:100%;height:100%;object-fit:cover;display:block}
+.collage-2{grid-template-columns:1fr 1fr}
+.collage-3{grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr}
+.collage-3 img:first-child{grid-row:1/3}
+.collage-4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.collage-5{grid-template-columns:2fr 1fr 1fr;grid-template-rows:1fr 1fr}
+.collage-5 img:first-child{grid-row:1/3}
+/* ── Gallery presets ─────────────── */
+.gallery-masonry{columns:3;column-gap:12px}
+.gallery-masonry .g-item{break-inside:avoid;margin-bottom:12px}
+.gallery-masonry img{width:100%;border-radius:var(--radius);display:block}
+.gallery-grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.gallery-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.gallery-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.gallery-grid2 img,.gallery-grid3 img,.gallery-grid4 img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:var(--radius);display:block}
+.gallery-filmstrip{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px}
+.gallery-filmstrip img{height:220px;width:auto;border-radius:var(--radius);flex-shrink:0}
+.gallery-hero{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto;gap:8px}
+.gallery-hero img:first-child{grid-column:1/3;grid-row:1/3;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius)}
+.gallery-hero img:not(:first-child){aspect-ratio:1;object-fit:cover;border-radius:var(--radius)}
+/* ── Section cards ───────────────── */
+.sec-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;margin-top:32px}
+.sec-card{border-radius:var(--radius);overflow:hidden;background:var(--surface);border:1px solid var(--border);transition:transform 0.2s,box-shadow 0.2s;text-decoration:none;color:inherit;display:block}
+.sec-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.12)}
+.sec-card-img{width:100%;height:160px;object-fit:cover;display:block}
+.sec-card-body{padding:16px}
+.sec-card-icon{font-size:2rem;color:var(--primary);margin-bottom:10px}
+.sec-card-title{font-weight:700;font-size:1rem;margin-bottom:6px}
+.sec-card-desc{font-size:0.85rem;color:var(--text-muted);line-height:1.5}
+/* ── Carousel ────────────────────── */
+.sec-carousel{position:relative;overflow:hidden;border-radius:var(--radius)}
+.carousel-track{display:flex;transition:transform 0.5s cubic-bezier(.4,0,.2,1)}
+.carousel-slide{min-width:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:60px 40px;text-align:center;box-sizing:border-box}
+.carousel-slide img.slide-img{width:90px;height:90px;object-fit:cover;border-radius:50%;box-shadow:0 4px 16px rgba(0,0,0,0.18)}
+.carousel-slide .slide-icon{font-size:3rem;color:var(--primary)}
+.carousel-slide .slide-title{font-size:1.4rem;font-weight:700}
+.carousel-slide .slide-desc{font-size:0.95rem;color:var(--text-muted);max-width:560px}
+.carousel-dots{display:flex;justify-content:center;gap:8px;margin-top:16px}
+.carousel-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:background 0.2s,transform 0.2s;border:none;padding:0}
+.carousel-dot.active{background:var(--primary);transform:scale(1.35)}
+.carousel-arrows{position:absolute;top:50%;transform:translateY(-50%);width:100%;display:flex;justify-content:space-between;pointer-events:none;padding:0 14px;box-sizing:border-box}
+.carousel-arrow{pointer-events:all;background:rgba(0,0,0,0.45);color:#fff;border:none;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;transition:background 0.2s}
+.carousel-arrow:hover{background:var(--primary)}
+/* ── Gradient text ───────────────── */
+.gradient-text{background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block}
+/* ── Responsive ──────────────────── */
 @media(max-width:700px){
-  .collage-3,.collage-5,.gallery-grid3,.gallery-grid4,.gallery-hero { grid-template-columns:1fr 1fr; }
-  .collage-3 img:first-child,.collage-5 img:first-child { grid-row:auto; }
-  .gallery-masonry { columns:2; }
+  .collage-3,.collage-5,.gallery-grid3,.gallery-grid4,.gallery-hero{grid-template-columns:1fr 1fr}
+  .collage-3 img:first-child,.collage-5 img:first-child{grid-row:auto}
+  .gallery-masonry{columns:2}
+  .sec-cards-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:480px){
-  .collage-2,.collage-4,.gallery-grid2 { grid-template-columns:1fr 1fr; }
-  .gallery-masonry,.gallery-grid3,.gallery-grid4 { columns:1; grid-template-columns:1fr; }
+  .gallery-masonry,.gallery-grid3,.gallery-grid4{columns:1;grid-template-columns:1fr}
+  .sec-cards-grid{grid-template-columns:1fr}
+  .sec-btn-row{flex-direction:column;align-items:flex-start}
 }
 </style>
 
+{% macro render_buttons(btns) %}
+{% if btns %}
+<div class="sec-btn-row">
+{% for btn in btns %}
+{%- set br = btn.border_radius or 6 -%}
+{%- set sz = btn.size or 'md' -%}
+{%- set st = btn.style or 'solid' -%}
+{%- set c1 = btn.color or 'var(--primary)' -%}
+{%- set c2 = btn.color2 or '' -%}
+{%- set tc = btn.text_color or '#ffffff' -%}
+
+{%- if st == 'solid' -%}
+  {%- set bg = 'linear-gradient(135deg,' ~ c1 ~ ',' ~ c2 ~ ')' if c2 else c1 -%}
+  {%- set bs = 'background:' ~ bg ~ ';color:' ~ tc ~ ';border-radius:' ~ br ~ 'px;' -%}
+{%- elif st == 'outline' -%}
+  {%- set bs = 'border-color:' ~ c1 ~ ';color:' ~ c1 ~ ';border-radius:' ~ br ~ 'px;' -%}
+{%- elif st == 'ghost' -%}
+  {%- set bs = 'color:' ~ c1 ~ ';border-radius:' ~ br ~ 'px;' -%}
+{%- elif st == 'soft' -%}
+  {%- set bs = 'background:' ~ c1 ~ '22;color:' ~ c1 ~ ';border-radius:' ~ br ~ 'px;' -%}
+{%- elif st == 'gradient' -%}
+  {%- set bg = 'linear-gradient(135deg,' ~ c1 ~ ',' ~ (c2 or c1) ~ ')' -%}
+  {%- set bs = 'background:' ~ bg ~ ';color:' ~ tc ~ ';border-radius:' ~ br ~ 'px;' -%}
+{%- elif st == 'glass' -%}
+  {%- set bs = 'background:rgba(255,255,255,0.15);color:' ~ tc ~ ';border-radius:' ~ br ~ 'px;border-color:rgba(255,255,255,0.3)!important;' -%}
+{%- elif st == 'neon-glow' -%}
+  {%- set bs = 'color:' ~ c1 ~ ';border-color:' ~ c1 ~ ';border-radius:' ~ br ~ 'px;background:transparent;' -%}
+{%- elif st == 'rainbow' -%}
+  {%- set bs = 'border-radius:' ~ br ~ 'px;' -%}
+{%- elif st == 'pulse' -%}
+  {%- set bg = 'linear-gradient(135deg,' ~ c1 ~ ',' ~ (c2 or c1) ~ ')' -%}
+  {%- set bs = 'background:' ~ bg ~ ';color:' ~ tc ~ ';border-radius:' ~ br ~ 'px;color:' ~ c1 ~ ';' -%}
+{%- elif st == 'shimmer' -%}
+  {%- set bg = 'linear-gradient(135deg,' ~ c1 ~ ',' ~ (c2 or c1) ~ ')' -%}
+  {%- set bs = 'background:' ~ bg ~ ';color:' ~ tc ~ ';border-radius:' ~ br ~ 'px;' -%}
+{%- elif st == '3d' -%}
+  {%- set bs = 'background:' ~ c1 ~ ';color:' ~ tc ~ ';border-radius:' ~ br ~ 'px;' -%}
+{%- elif st == 'underline' -%}
+  {%- set bs = 'color:' ~ c1 ~ ';border-color:' ~ c1 ~ '!important;' -%}
+{%- else -%}
+  {%- set bs = 'background:' ~ c1 ~ ';color:' ~ tc ~ ';border-radius:' ~ br ~ 'px;' -%}
+{%- endif -%}
+
+<a href="{{ btn.url or '#' }}" class="sbtn sbtn-{{ sz }} sbtn-{{ st }}"
+   style="{{ bs }}"
+   {% if btn.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+    {% if btn.icon and btn.icon_pos == 'left' %}<i class="{{ btn.icon }}"></i>{% endif %}
+    {{ btn.label }}
+    {% if btn.icon and btn.icon_pos == 'right' %}<i class="{{ btn.icon }}"></i>{% endif %}
+</a>
+{% endfor %}
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro render_heading(sec) %}
+{%- set ha = 'text-align:' ~ (sec.heading_align or 'left') ~ ';' -%}
+{% if sec.heading %}
+  {% if sec.heading_gradient and sec.heading_gradient2 %}
+    <h2 class="section-heading animate-on-scroll gradient-text"
+        style="{{ ha }}background:linear-gradient(135deg,{{ sec.heading_gradient }},{{ sec.heading_gradient2 }});">{{ sec.heading }}</h2>
+  {% elif sec.heading_gradient %}
+    <h2 class="section-heading animate-on-scroll gradient-text"
+        style="{{ ha }}background:linear-gradient(135deg,{{ sec.heading_gradient }},#db2777);">{{ sec.heading }}</h2>
+  {% else %}
+    <h2 class="section-heading animate-on-scroll" style="{{ ha }}{{ 'color:' ~ sec.heading_color ~ ';' if sec.heading_color }}">{{ sec.heading }}</h2>
+  {% endif %}
+{% endif %}
+{% if sec.subheading %}
+  <p class="section-sub animate-on-scroll" style="{{ 'color:' ~ sec.subheading_color ~ ';' if sec.subheading_color }}">{{ sec.subheading }}</p>
+{% endif %}
+{% endmacro %}
+
+{% macro section_bg(sec) -%}
+{%- if sec.section_bg_gradient and sec.section_bg_gradient2 -%}
+  {%- if sec.section_bg_gradient_dir == 'circle' -%}
+background:radial-gradient(circle,{{ sec.section_bg_gradient }},{{ sec.section_bg_gradient2 }});
+  {%- else -%}
+background:linear-gradient({{ sec.section_bg_gradient_dir or '135deg' }},{{ sec.section_bg_gradient }},{{ sec.section_bg_gradient2 }});
+  {%- endif -%}
+{%- elif sec.section_bg_color -%}
+background:{{ sec.section_bg_color }};
+{%- endif -%}
+{%- if sec.bg_image -%}
+background-image:url('/uploads/{{ sec.bg_image }}');background-size:cover;background-position:center;background-attachment:{{ sec.bg_attachment or 'scroll' }};
+{%- endif -%}
+{%- endmacro %}
+
+{% macro card_style(sec) -%}
+{%- if sec.card_bg_gradient and sec.card_bg_gradient2 -%}
+background:linear-gradient(135deg,{{ sec.card_bg_gradient }},{{ sec.card_bg_gradient2 }});
+{%- elif sec.card_bg_color -%}
+background:{{ sec.card_bg_color }};
+{%- endif -%}
+{%- if sec.card_border_width and sec.card_border_width|int > 0 -%}
+border:{{ sec.card_border_width }}px solid {{ sec.card_border_color or 'var(--border)' }};
+{%- endif -%}
+border-radius:{{ sec.card_border_radius or 8 }}px;
+{%- endmacro %}
+
 {% for sec in sections %}
 {% set imgs = sec.image_urls.split(',') | select | list if sec.image_urls else [] %}
-{% set heading_style = 'color:' ~ sec.heading_color ~ ';' if sec.heading_color else '' %}
-{% set heading_align = 'text-align:' ~ (sec.heading_align or 'left') ~ ';' %}
-{% set sub_style = 'color:' ~ sec.subheading_color ~ ';' if sec.subheading_color else '' %}
-{% set card_style %}
-  {% if sec.card_bg_color %}background:{{ sec.card_bg_color }};{% endif %}
-  {% if sec.card_border_width and sec.card_border_width|int > 0 %}border:{{ sec.card_border_width }}px solid {{ sec.card_border_color or 'var(--border)' }};{% endif %}
-  border-radius:{{ sec.card_border_radius or 8 }}px;
-{% endset %}
+{% set btns = sec_buttons.get(sec.id, []) if sec_buttons is defined else [] %}
+{% set cards = sec_cards.get(sec.id, []) if sec_cards is defined else [] %}
 
-{% if sec.type == 'hero' %}
-<section style="padding: var(--section-padding);">
+{# ─── CAROUSEL ──────────────────── #}
+{% if sec.type == 'carousel' %}
+<section style="padding:var(--section-padding);{{ section_bg(sec) }}" id="sec-{{ sec.id }}">
     <div class="container">
-        {% if sec.heading %}<h2 class="section-heading animate-on-scroll" style="{{ heading_style }}{{ heading_align }}">{{ sec.heading }}</h2>{% endif %}
-        {% if sec.subheading %}<p class="section-sub animate-on-scroll" style="{{ sub_style }}">{{ sec.subheading }}</p>{% endif %}
-        {% if sec.content %}<div class="content-body animate-on-scroll">{{ sec.content | safe }}</div>{% endif %}
-        {% if sec.button_text %}
-        <div style="margin-top:28px;">
-            <a href="{{ sec.button_link or '#' }}" class="btn btn-primary" {% if sec.get('button_new_tab') %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ sec.button_text }}</a>
+        {{ render_heading(sec) }}
+        <div class="sec-carousel animate-on-scroll" data-speed="{{ sec.carousel_speed or 4000 }}">
+            <div class="carousel-track" id="track-{{ sec.id }}">
+                {% for card in cards if card.enabled %}
+                <div class="carousel-slide" style="{{ 'background:' ~ sec.card_bg_color ~ ';' if sec.card_bg_color }}">
+                    {% if card.image_url %}<img class="slide-img" src="/uploads/{{ card.image_url }}" alt="{{ card.title }}">
+                    {% elif card.icon %}<i class="{{ card.icon }} slide-icon"></i>{% endif %}
+                    {% if card.title %}<div class="slide-title">{{ card.title }}</div>{% endif %}
+                    {% if card.description %}<div class="slide-desc">{{ card.description }}</div>{% endif %}
+                    {% if card.link %}<a href="{{ card.link }}" class="sbtn sbtn-md sbtn-solid" style="background:var(--primary);color:#fff;border-radius:8px;margin-top:8px;" {% if card.link_new_tab %}target="_blank"{% endif %}>View More</a>{% endif %}
+                </div>
+                {% else %}
+                <div class="carousel-slide" style="color:var(--text-muted);">No slides yet — add cards in admin.</div>
+                {% endfor %}
+            </div>
+            <div class="carousel-arrows">
+                <button class="carousel-arrow" onclick="moveCarousel('{{ sec.id }}',-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="carousel-arrow" onclick="moveCarousel('{{ sec.id }}',1)"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
         </div>
-        {% endif %}
+        <div class="carousel-dots" id="dots-{{ sec.id }}">
+            {% for card in cards if card.enabled %}
+            <button class="carousel-dot {% if loop.first %}active{% endif %}" onclick="goToSlide('{{ sec.id }}',{{ loop.index0 }})"></button>
+            {% endfor %}
+        </div>
+        {{ render_buttons(btns) }}
     </div>
 </section>
 
+{# ─── GALLERY ────────────────────── #}
 {% elif sec.type == 'gallery' %}
-{# ── GALLERY SECTION ──────────────────────────────────────────────── #}
-<section style="padding: var(--section-padding); {{ 'background:' ~ sec.section_bg_color ~ ';' if sec.section_bg_color }}">
+<section style="padding:var(--section-padding);{{ section_bg(sec) }}">
     <div class="container">
-        {% if sec.heading %}<h2 class="section-heading animate-on-scroll" style="{{ heading_style }}{{ heading_align }}">{{ sec.heading }}</h2>{% endif %}
-        {% if sec.subheading %}<p class="section-sub animate-on-scroll" style="{{ sub_style }}">{{ sec.subheading }}</p>{% endif %}
-        {% set preset = sec.gallery_preset or 'masonry' %}
-        <div class="gallery-{{ preset }}">
-          {% for img in imgs %}
-          <div class="g-item">
-            <img src="/uploads/{{ img }}" alt="Gallery image {{ loop.index }}" loading="lazy">
-          </div>
-          {% endfor %}
+        {{ render_heading(sec) }}
+        <div class="gallery-{{ sec.gallery_preset or 'masonry' }}">
+            {% for img in imgs %}
+            <div class="g-item"><img src="/uploads/{{ img }}" alt="Gallery {{ loop.index }}" loading="lazy"></div>
+            {% endfor %}
         </div>
-        {% if sec.button_text %}
-        <div style="margin-top:28px;">
-            <a href="{{ sec.button_link or '#' }}" class="btn btn-primary" {% if sec.get('button_new_tab') %}target="_blank"{% endif %}>{{ sec.button_text }}</a>
-        </div>
-        {% endif %}
+        {{ render_buttons(btns) }}
     </div>
 </section>
 
-{% elif sec.type in ['content', 'services', 'about', 'portfolio', 'contact'] %}
-<section style="{{ 'background:' ~ sec.section_bg_color ~ ';' if sec.section_bg_color }}">
-    <div class="container" style="{{ card_style }}padding:0;">
-        {% if sec.heading %}<h2 class="section-heading animate-on-scroll" style="{{ heading_style }}{{ heading_align }}">{{ sec.heading }}</h2>{% endif %}
-        {% if sec.subheading %}<p class="section-sub animate-on-scroll" style="{{ sub_style }}">{{ sec.subheading }}</p>{% endif %}
+{# ─── ALL OTHER TYPES ────────────── #}
+{% else %}
+<section style="padding:var(--section-padding);{{ section_bg(sec) }}" id="sec-{{ sec.id }}">
+    <div class="container">
+        {{ render_heading(sec) }}
 
-        {# ── Single image (original) ───────── #}
         {% if sec.image_url and (not imgs or sec.image_collage == 'single') %}
         <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt }}"
-             style="border-radius:var(--radius); margin-bottom:32px; max-height:400px; width:100%; object-fit:cover;" class="animate-on-scroll">
-
-        {# ── Multi-image collage ───────────── #}
+             style="border-radius:var(--radius);margin-bottom:32px;max-height:400px;width:100%;object-fit:cover;" class="animate-on-scroll">
         {% elif imgs %}
-          {% set n = imgs|length %}
-          {% set layout = sec.image_collage or 'single' %}
-          {% if layout == 'single' %}
-            <img src="/uploads/{{ imgs[0] }}" alt="Section image" style="border-radius:var(--radius);margin-bottom:32px;max-height:400px;width:100%;object-fit:cover;" class="animate-on-scroll">
-          {% else %}
-            <div class="collage-grid collage-{{ [n, 5]|min }} animate-on-scroll" style="max-height:500px;">
-              {% for img in imgs[:5] %}<img src="/uploads/{{ img }}" alt="Image {{ loop.index }}" loading="lazy">{% endfor %}
+            {% if sec.image_collage == 'single' %}
+            <img src="/uploads/{{ imgs[0] }}" style="border-radius:var(--radius);margin-bottom:32px;max-height:400px;width:100%;object-fit:cover;" class="animate-on-scroll">
+            {% else %}
+            <div class="collage-grid collage-{{ [imgs|length, 5]|min }} animate-on-scroll" style="max-height:500px;">
+                {% for img in imgs[:5] %}<img src="/uploads/{{ img }}" alt="Image {{ loop.index }}" loading="lazy">{% endfor %}
             </div>
-          {% endif %}
+            {% endif %}
         {% endif %}
 
-        <div class="content-body animate-on-scroll">{{ sec.content | safe }}</div>
-        {% if sec.button_text %}
-        <div style="margin-top:28px;">
-            <a href="{{ sec.button_link or '#' }}" class="btn btn-primary" {% if sec.get('button_new_tab') %}target="_blank" rel="noopener noreferrer"{% endif %}>
-                <i class="fa-solid fa-arrow-right"></i> {{ sec.button_text }}
-            </a>
+        {% if sec.content %}<div class="content-body animate-on-scroll">{{ sec.content | safe }}</div>{% endif %}
+
+        {{ render_buttons(btns) }}
+
+        {% if cards %}
+        <div class="sec-cards-grid">
+            {% for card in cards if card.enabled %}
+            <{% if card.link %}a href="{{ card.link }}" {% if card.link_new_tab %}target="_blank"{% endif %}{% else %}div{% endif %}
+               class="sec-card" style="{{ card_style(sec) }}">
+                {% if card.image_url %}<img class="sec-card-img" src="/uploads/{{ card.image_url }}" alt="{{ card.title }}" loading="lazy">{% endif %}
+                <div class="sec-card-body">
+                    {% if card.icon and not card.image_url %}<div class="sec-card-icon"><i class="{{ card.icon }}"></i></div>{% endif %}
+                    {% if card.title %}<div class="sec-card-title">{{ card.title }}</div>{% endif %}
+                    {% if card.description %}<div class="sec-card-desc">{{ card.description }}</div>{% endif %}
+                </div>
+            </{% if card.link %}a{% else %}div{% endif %}>
+            {% endfor %}
         </div>
         {% endif %}
     </div>
@@ -130,4 +330,31 @@
 {% endif %}
 {% endfor %}
 
+<script>
+const _carousels = {};
+function initCarousel(id, speed) {
+    const track = document.getElementById('track-' + id);
+    const dots  = document.querySelectorAll('#dots-' + id + ' .carousel-dot');
+    if (!track || !dots.length) return;
+    let idx = 0, total = track.children.length;
+    function go(n) {
+        idx = ((n % total) + total) % total;
+        track.style.transform = 'translateX(-' + (idx * 100) + '%)';
+        dots.forEach((d,i) => d.classList.toggle('active', i === idx));
+    }
+    const iv = setInterval(() => go(idx + 1), speed);
+    _carousels[id] = { go, iv, total };
+}
+function moveCarousel(id, dir) {
+    const c = _carousels[id];
+    if (!c) return;
+    clearInterval(c.iv);
+    c.go((Object.values(_carousels).findIndex(x=>x===c) + dir + c.total) % c.total);
+}
+function goToSlide(id, n) { const c = _carousels[id]; if (c) c.go(n); }
+document.querySelectorAll('.sec-carousel').forEach(el => {
+    const id = el.closest('section').id.replace('sec-','');
+    initCarousel(id, parseInt(el.dataset.speed) || 4000);
+});
+</script>
 {% endblock %}
