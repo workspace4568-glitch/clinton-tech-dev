@@ -994,7 +994,8 @@ def admin_export_run():
         global _export_status
         try:
             out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance', 'export_out')
-            summary = export_static(app, out_dir)
+            with app.app_context():
+                summary = export_static(app, out_dir)
             _export_status['summary'] = summary
             _export_status['done']    = True
         except Exception as e:
