@@ -315,40 +315,48 @@ def admin_new_page():
         title    = request.form.get('title','').strip()
         slug     = request.form.get('slug','').strip()
         template = request.form.get('page_template', 'blank')
-        with db() as conn:
-            n = count(conn, 'pages')
-            execute(conn, "INSERT INTO pages (title,slug,is_home,visible,ord) VALUES (?,?,0,1,?)", (title, slug, n))
-            page_id = last_insert_id(conn, 'pages')
-            if template == 'gallery':
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content,gallery_preset) VALUES (?,?,0,1,?,?,'','masonry')",
-                        (page_id, 'gallery', title, 'Browse our work below'))
-            elif template == 'landing':
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>Tell your story here.</p>')",
-                        (page_id, 'hero', title, 'Your tagline goes here'))
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Our Services','<p>Describe your services.</p>')",
-                        (page_id, 'services'))
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,2,1,'About Us','<p>Tell visitors about you.</p>')",
-                        (page_id, 'about'))
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,3,1,'Get In Touch','<p>Contact details here.</p>')",
-                        (page_id, 'contact'))
-            elif template == 'about':
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>Share your story.</p>')",
-                        (page_id, 'hero', title, 'Who we are'))
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Our Story','<p>Your history and mission.</p>')",
-                        (page_id, 'about'))
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,2,1,'Our Portfolio','<p>Showcase your work.</p>')",
-                        (page_id, 'portfolio'))
-            elif template == 'portfolio':
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>A selection of our best work.</p>')",
-                        (page_id, 'hero', title, 'Our Work'))
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Projects','<p>Project showcase.</p>')",
-                        (page_id, 'portfolio'))
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,2,1,'Gallery','')", (page_id, 'gallery'))
-            else:  # blank
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>Edit this content in the admin panel.</p>')",
-                        (page_id, 'hero', title, 'Subtitle goes here'))
-                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Content','<p>Add your content here.</p>')",
-                        (page_id, 'content'))
+        if not title or not slug:
+            flash('Title and slug are required.', 'error')
+            return render_template('admin/new_page.html')
+        page_id = None
+        try:
+            with db() as conn:
+                n = count(conn, 'pages')
+                execute(conn, "INSERT INTO pages (title,slug,is_home,visible,ord) VALUES (?,?,0,1,?)", (title, slug, n))
+                page_id = last_insert_id(conn, 'pages')
+                if template == 'gallery':
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content,gallery_preset) VALUES (?,?,0,1,?,?,'','masonry')",
+                            (page_id, 'gallery', title, 'Browse our work below'))
+                elif template == 'landing':
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>Tell your story here.</p>')",
+                            (page_id, 'hero', title, 'Your tagline goes here'))
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Our Services','<p>Describe your services.</p>')",
+                            (page_id, 'services'))
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,2,1,'About Us','<p>Tell visitors about you.</p>')",
+                            (page_id, 'about'))
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,3,1,'Get In Touch','<p>Contact details here.</p>')",
+                            (page_id, 'contact'))
+                elif template == 'about':
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>Share your story.</p>')",
+                            (page_id, 'hero', title, 'Who we are'))
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Our Story','<p>Your history and mission.</p>')",
+                            (page_id, 'about'))
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,2,1,'Our Portfolio','<p>Showcase your work.</p>')",
+                            (page_id, 'portfolio'))
+                elif template == 'portfolio':
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>A selection of our best work.</p>')",
+                            (page_id, 'hero', title, 'Our Work'))
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Projects','<p>Project showcase.</p>')",
+                            (page_id, 'portfolio'))
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,2,1,'Gallery','')", (page_id, 'gallery'))
+                else:  # blank
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>Edit this content in the admin panel.</p>')",
+                            (page_id, 'hero', title, 'Subtitle goes here'))
+                    execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Content','<p>Add your content here.</p>')",
+                            (page_id, 'content'))
+        except Exception as e:
+            flash(f'Error creating page: {e}', 'error')
+            return render_template('admin/new_page.html')
         flash('Page created!', 'success')
         return redirect(url_for('admin_edit_page', page_id=page_id))
     return render_template('admin/new_page.html')
@@ -356,21 +364,25 @@ def admin_new_page():
 @app.route('/admin/pages/<int:page_id>', methods=['GET', 'POST'])
 @admin_required
 def admin_edit_page(page_id):
-    with db() as conn:
-        page = get_page_by_id(conn, page_id)
-        if not page:
-            flash('Page not found.', 'error')
-            return redirect(url_for('admin_pages'))
-        if request.method == 'POST' and request.form.get('action') == 'update_page':
-            visible   = 1 if 'visible' in request.form else 0
-            new_slug  = page['slug'] if page['is_home'] else request.form.get('slug', page['slug'])
-            execute(conn, "UPDATE pages SET title=?,slug=?,visible=? WHERE id=?",
-                    (request.form.get('title', page['title']), new_slug, visible, page_id))
-            flash('Page updated!', 'success')
+    try:
+        with db() as conn:
             page = get_page_by_id(conn, page_id)
-        sections = get_sections(conn, page_id)
-        sec_cards   = {sec['id']: get_section_cards(conn, sec['id']) for sec in sections}
-        sec_buttons = {sec['id']: get_section_buttons(conn, sec['id']) for sec in sections}
+            if not page:
+                flash('Page not found.', 'error')
+                return redirect(url_for('admin_pages'))
+            if request.method == 'POST' and request.form.get('action') == 'update_page':
+                visible   = 1 if 'visible' in request.form else 0
+                new_slug  = page['slug'] if page['is_home'] else request.form.get('slug', page['slug'])
+                execute(conn, "UPDATE pages SET title=?,slug=?,visible=? WHERE id=?",
+                        (request.form.get('title', page['title']), new_slug, visible, page_id))
+                flash('Page updated!', 'success')
+                page = get_page_by_id(conn, page_id)
+            sections = get_sections(conn, page_id)
+            sec_cards   = {sec['id']: get_section_cards(conn, sec['id']) for sec in sections}
+            sec_buttons = {sec['id']: get_section_buttons(conn, sec['id']) for sec in sections}
+    except Exception as e:
+        flash(f'Error loading page: {e}', 'error')
+        return redirect(url_for('admin_pages'))
     return render_template('admin/edit_page.html', page=page, sections=sections, sec_cards=sec_cards, sec_buttons=sec_buttons)
 
 @app.route('/admin/pages/<int:page_id>/delete', methods=['POST'])
