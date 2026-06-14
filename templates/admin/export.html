@@ -228,7 +228,7 @@
         This usually takes 5–15 seconds depending on how many pages and images you have.
     </p>
     <form method="POST" action="/admin/export/run" id="exportForm">
-        <button type="submit" class="export-btn" id="exportBtn" onclick="startExport()">
+        <button type="submit" class="export-btn" id="exportBtn">
             <i class="fa-solid fa-box-archive"></i> Generate Static Export
         </button>
     </form>
@@ -266,11 +266,18 @@
 
 {% block scripts %}
 <script>
-function startExport() {
-    const btn = document.getElementById('exportBtn');
-    if (!btn) return;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Exporting... please wait';
-}
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('exportForm');
+    var btn  = document.getElementById('exportBtn');
+    if (form && btn) {
+        form.addEventListener('submit', function() {
+            // Delay disable so the browser captures the submit first
+            setTimeout(function() {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Exporting... please wait';
+            }, 0);
+        });
+    }
+});
 </script>
 {% endblock %}
