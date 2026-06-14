@@ -1110,37 +1110,51 @@ const TOOLBAR_OPTIONS = [
     ['clean'],
 ];
 
-// ── Init all editors ────────────────────────────────────────────────────────
+// ── Lazy Quill init — only init when section is first opened ────────────────
+// Quill MUST NOT be initialized on display:none elements — it loses all content.
 const quills = {};
-{% for sec in sections %}
-(function() {
-    var q = new Quill('#editor-{{ sec.id }}', {
+const quillInited = {};
+
+function initQuillForSection(secId) {
+    if (quillInited[secId]) return;
+    quillInited[secId] = true;
+    var editorEl = document.getElementById('editor-' + secId);
+    if (!editorEl) return;
+    // Grab existing HTML content before Quill replaces the element
+    var existingHTML = editorEl.innerHTML;
+    var q = new Quill(editorEl, {
         theme: 'snow',
         placeholder: 'Type your content here — select text and use the toolbar to style it...',
         modules: { toolbar: TOOLBAR_OPTIONS }
     });
-    quills['{{ sec.id }}'] = q;
+    // Restore content Quill may have cleared
+    if (existingHTML && existingHTML.trim() !== '' && q.getText().trim() === '') {
+        q.root.innerHTML = existingHTML;
+    }
+    quills[secId] = q;
 
-    // Style font picker items to show actual fonts
-    var fontPicker = document.querySelector('#editor-{{ sec.id }}').previousSibling;
-    setTimeout(function() {
-        document.querySelectorAll('#editor-{{ sec.id }}').forEach(function(ed) {
-            var container = ed.closest('.ql-container') || ed.previousElementSibling;
-        });
-    }, 100);
-})();
-{% endfor %}
-
-// ── Sync ALL Quill editors to hidden fields on form submit ─────────────────
-document.querySelectorAll('form[action*="/admin/sections/"]').forEach(function(form) {
-    form.addEventListener('submit', function() {
-        var actionMatch = form.action.match(/\/admin\/sections\/(\d+)$/);
-        if (!actionMatch) return;
-        var secId = actionMatch[1];
-        if (quills[secId]) {
+    // Wire up the form submit to sync this editor's content
+    var form = editorEl.closest('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
             var hiddenInput = document.getElementById('content-' + secId);
-            if (hiddenInput) hiddenInput.value = quills[secId].root.innerHTML;
-        }
+            if (hiddenInput) hiddenInput.value = q.root.innerHTML;
+        });
+    }
+}
+
+// ── Hook section header clicks to lazy-init Quill ────────────────────────────
+document.querySelectorAll('.section-header').forEach(function(header) {
+    header.addEventListener('click', function() {
+        var body = header.nextElementSibling;
+        // Find section id from the form action inside this body
+        var form = body ? body.querySelector('form[action*="/admin/sections/"]') : null;
+        if (!form) return;
+        var match = form.action.match(/\/admin\/sections\/(\d+)$/);
+        if (!match) return;
+        var secId = match[1];
+        // Init after the toggle animation (display:block needs a tick)
+        setTimeout(function() { initQuillForSection(secId); }, 0);
     });
 });
 
