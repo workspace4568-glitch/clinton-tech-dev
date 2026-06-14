@@ -155,6 +155,17 @@ def index():
     return render_template('site/index.html', sections=sections, initiatives=initiatives,
                            service_cards=service_cards, portfolio_items=portfolio_items, **ctx)
 
+@app.route('/<slug>')
+def site_page_short(slug):
+    reserved = {'admin', 'uploads', 'gallery', 'static'}
+    if slug in reserved:
+        from flask import abort; abort(404)
+    with db() as conn:
+        page = get_page_by_slug(conn, slug)
+        if not page:
+            from flask import abort; abort(404)
+    return site_page(slug)
+
 @app.route('/page/<slug>')
 def site_page(slug):
     with db() as conn:
