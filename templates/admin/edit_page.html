@@ -651,12 +651,11 @@
                             style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:0.8rem;">
                             <i class="fa-solid fa-chevron-down"></i> Edit
                         </button>
-                        <form method="POST" action="/admin/section-buttons/{{ btn.id }}/delete" style="margin:0;"
-                              onsubmit="return confirm('Delete this button?');">
-                            <button type="submit" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.8rem;">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>
+                        <button type="button"
+                            onclick="if(confirm('Delete this button?')){var f=document.createElement('form');f.method='POST';f.action='/admin/section-buttons/{{ btn.id }}/delete';document.body.appendChild(f);f.submit();}"
+                            style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.8rem;">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </div>
                     <div data-btn>
                     <div class="btn-body hidden" style="padding:14px;">
@@ -843,12 +842,11 @@
                             style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:0.8rem;">
                             <i class="fa-solid fa-chevron-down"></i> Edit
                         </button>
-                        <form method="POST" action="/admin/section-cards/{{ card.id }}/delete" style="margin:0;"
-                              onsubmit="return confirm('Delete this card?');">
-                            <button type="submit" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.8rem;">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>
+                        <button type="button"
+                            onclick="if(confirm('Delete this card?')){var f=document.createElement('form');f.method='POST';f.action='/admin/section-cards/{{ card.id }}/delete';document.body.appendChild(f);f.submit();}"
+                            style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.8rem;">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </div>
                     <div data-card class="">
                     <div class="card-body hidden" style="padding:14px;">
