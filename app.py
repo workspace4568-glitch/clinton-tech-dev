@@ -487,7 +487,39 @@ def admin_update_section(section_id):
     flash('Section saved!', 'success')
     return redirect(url_for('admin_edit_page', page_id=page_id))
 
-@app.route('/admin/sections/add/<int:page_id>', methods=['POST'])
+@app.route('/admin/sections/<int:section_id>/move', methods=['POST'])
+@admin_required
+def admin_move_section(section_id):
+    direction = request.form.get('direction', 'up')  # 'up' or 'down'
+    with db() as conn:
+        cur = execute(conn, "SELECT * FROM sections WHERE id=?", (section_id,))
+        sec = cur.fetchone()
+        if not sec:
+            flash('Section not found.', 'error')
+            return redirect(url_for('admin_pages'))
+        sec = dict(sec)
+        page_id = sec['page_id']
+        # Get all sections for this page ordered by ord
+        cur2 = execute(conn, "SELECT id, ord FROM sections WHERE page_id=? ORDER BY ord, id", (page_id,))
+        all_secs = [dict(r) for r in cur2.fetchall()]
+        # Normalize ord values first (0,1,2,...)
+        for i, s in enumerate(all_secs):
+            execute(conn, "UPDATE sections SET ord=? WHERE id=?", (i, s['id']))
+            all_secs[i]['ord'] = i
+        # Find current index
+        idx = next((i for i, s in enumerate(all_secs) if s['id'] == section_id), None)
+        if idx is None:
+            return redirect(url_for('admin_edit_page', page_id=page_id))
+        # Swap with neighbor
+        if direction == 'up' and idx > 0:
+            execute(conn, "UPDATE sections SET ord=? WHERE id=?", (idx,   all_secs[idx-1]['id']))
+            execute(conn, "UPDATE sections SET ord=? WHERE id=?", (idx-1, section_id))
+        elif direction == 'down' and idx < len(all_secs) - 1:
+            execute(conn, "UPDATE sections SET ord=? WHERE id=?", (idx,   all_secs[idx+1]['id']))
+            execute(conn, "UPDATE sections SET ord=? WHERE id=?", (idx+1, section_id))
+    return redirect(url_for('admin_edit_page', page_id=page_id))
+
+
 @admin_required
 def admin_add_section(page_id):
     sec_type = request.form.get('type', 'content')
