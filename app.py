@@ -2,9 +2,9 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from werkzeug.utils import secure_filename
 from functools import wraps
-from database import (db, init_db, USE_POSTGRES, _p, count, last_insert_id,
+from database import (db, media_db, init_db, USE_POSTGRES, _p, count, last_insert_id,
     get_settings, get_pages, get_page_by_slug, get_page_by_id,
-    get_home_page, get_sections, get_nav, get_socials,
+    get_home_page, get_sections, get_nav, get_socials, get_section_cards, get_section_buttons,
     get_initiatives, get_all_initiatives,
     get_service_cards, get_all_service_cards,
     get_portfolio_items, get_all_portfolio_items)
@@ -179,10 +179,12 @@ def site_page(slug):
                                    scheme=next((c for c in COLOR_SCHEMES if c['id']==s['color_scheme']),COLOR_SCHEMES[0]),
                                    theme_css=THEME_CSS.get(s['theme'],THEME_CSS['bold-studio'])), 404
         sections = get_sections(conn, page['id'], enabled_only=True)
+        sec_cards   = {s['id']: get_section_cards(conn, s['id'], enabled_only=True) for s in sections}
+        sec_buttons = {s['id']: get_section_buttons(conn, s['id']) for s in sections}
         nav    = get_nav(conn)
         socials = get_socials(conn)
     ctx = render_ctx(s, nav, socials)
-    return render_template('site/page.html', page=page, sections=sections, **ctx)
+    return render_template('site/page.html', page=page, sections=sections, sec_cards=sec_cards, sec_buttons=sec_buttons, **ctx)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -367,7 +369,9 @@ def admin_edit_page(page_id):
             flash('Page updated!', 'success')
             page = get_page_by_id(conn, page_id)
         sections = get_sections(conn, page_id)
-    return render_template('admin/edit_page.html', page=page, sections=sections)
+        sec_cards   = {sec['id']: get_section_cards(conn, sec['id']) for sec in sections}
+        sec_buttons = {sec['id']: get_section_buttons(conn, sec['id']) for sec in sections}
+    return render_template('admin/edit_page.html', page=page, sections=sections, sec_cards=sec_cards, sec_buttons=sec_buttons)
 
 @app.route('/admin/pages/<int:page_id>/delete', methods=['POST'])
 @admin_required
@@ -409,6 +413,16 @@ def admin_update_section(section_id):
             fname = secure_filename(f"sec_{section_id}_{file.filename}")
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
             image_url = fname
+        # Handle bg_image upload
+        bg_image_url = sec.get('bg_image', '')
+        bg_file = request.files.get('bg_image_file')
+        if bg_file and bg_file.filename and allowed_file(bg_file.filename):
+            bfname = secure_filename(f"sec_bg_{section_id}_{bg_file.filename}")
+            bg_file.save(os.path.join(app.config['UPLOAD_FOLDER'], bfname))
+            bg_image_url = bfname
+        if f.get('clear_bg_image'):
+            bg_image_url = ''
+
         # Handle multiple image uploads
         image_urls_list = [u for u in (sec.get('image_urls') or '').split(',') if u.strip()]
         for mf in request.files.getlist('multi_images'):
@@ -429,7 +443,11 @@ def admin_update_section(section_id):
             card_hover=?,card_hover_color=?,card_hover_font_color=?,card_transition_speed=?,
             heading_color=?,heading_align=?,subheading_color=?,
             card_bg_color=?,card_border_width=?,card_border_color=?,card_border_radius=?,
-            image_urls=?,image_collage=?,gallery_preset=?
+            image_urls=?,image_collage=?,gallery_preset=?,
+            bg_image=?,carousel_speed=?,
+            heading_gradient=?,heading_gradient2=?,
+            section_bg_gradient=?,section_bg_gradient2=?,section_bg_gradient_dir=?,
+            card_bg_gradient=?,card_bg_gradient2=?
             WHERE id=?
         """, (f.get('heading',''), f.get('subheading',''), f.get('content',''),
               f.get('button_text',''), f.get('button_link',''), btn_new_tab, enabled,
@@ -448,6 +466,10 @@ def admin_update_section(section_id):
               f.get('card_border_color',''), _safe_int(f.get('card_border_radius',8)),
               ','.join(image_urls_list), f.get('image_collage','single'),
               f.get('gallery_preset','masonry'),
+              bg_image_url, _safe_int(f.get('carousel_speed', 4000)),
+              f.get('heading_gradient',''), f.get('heading_gradient2',''),
+              f.get('section_bg_gradient',''), f.get('section_bg_gradient2',''), f.get('section_bg_gradient_dir','135deg'),
+              f.get('card_bg_gradient',''), f.get('card_bg_gradient2',''),
               section_id))
         page_id = sec['page_id']
     flash('Section saved!', 'success')
@@ -473,6 +495,123 @@ def admin_delete_section(section_id):
         page_id = dict(row)['page_id'] if row else None
         execute(conn, "DELETE FROM sections WHERE id=?", (section_id,))
     flash('Section deleted.', 'success')
+    return redirect(url_for('admin_edit_page', page_id=page_id))
+
+# ─── SECTION CARDS ───────────────────────────────────────────────────────────
+@app.route('/admin/sections/<int:section_id>/cards/add', methods=['POST'])
+@admin_required
+def admin_add_section_card(section_id):
+    f = request.form
+    with db() as conn:
+        sec = dict(conn.cursor().execute("SELECT page_id FROM sections WHERE id=?", (section_id,)).fetchone())
+        n = count(conn, 'section_cards')
+        # Handle image upload
+        img_url = ''
+        img_file = request.files.get('image')
+        if img_file and img_file.filename and allowed_file(img_file.filename):
+            fname = secure_filename(f"card_{section_id}_{img_file.filename}")
+            img_file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
+            img_url = fname
+        link_new_tab = 1 if 'link_new_tab' in f else 0
+        execute(conn, "INSERT INTO section_cards (section_id,title,description,icon,image_url,link,link_new_tab,ord,enabled) VALUES (?,?,?,?,?,?,?,?,1)",
+                (section_id, f.get('title','New Card'), f.get('description',''),
+                 f.get('icon',''), img_url, f.get('link',''), link_new_tab, n))
+        page_id = sec['page_id']
+    flash('Card added!', 'success')
+    return redirect(url_for('admin_edit_page', page_id=page_id))
+
+@app.route('/admin/section-cards/<int:card_id>', methods=['POST'])
+@admin_required
+def admin_update_section_card(card_id):
+    f = request.form
+    with db() as conn:
+        row = dict(conn.cursor().execute(
+            "SELECT sc.*, s.page_id FROM section_cards sc JOIN sections s ON sc.section_id=s.id WHERE sc.id=?", (card_id,)
+        ).fetchone())
+        img_url = row.get('image_url', '')
+        img_file = request.files.get('image')
+        if img_file and img_file.filename and allowed_file(img_file.filename):
+            fname = secure_filename(f"card_{card_id}_{img_file.filename}")
+            img_file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
+            img_url = fname
+        if f.get('clear_image'):
+            img_url = ''
+        enabled = 1 if 'enabled' in f else 0
+        link_new_tab = 1 if 'link_new_tab' in f else 0
+        execute(conn, "UPDATE section_cards SET title=?,description=?,icon=?,image_url=?,link=?,link_new_tab=?,enabled=? WHERE id=?",
+                (f.get('title',''), f.get('description',''), f.get('icon',''),
+                 img_url, f.get('link',''), link_new_tab, enabled, card_id))
+        page_id = row['page_id']
+    flash('Card saved!', 'success')
+    return redirect(url_for('admin_edit_page', page_id=page_id))
+
+@app.route('/admin/section-cards/<int:card_id>/delete', methods=['POST'])
+@admin_required
+def admin_delete_section_card(card_id):
+    with db() as conn:
+        row = conn.cursor().execute(
+            "SELECT sc.section_id, s.page_id FROM section_cards sc JOIN sections s ON sc.section_id=s.id WHERE sc.id=?", (card_id,)
+        ).fetchone()
+        page_id = dict(row)['page_id'] if row else None
+        execute(conn, "DELETE FROM section_cards WHERE id=?", (card_id,))
+    flash('Card deleted.', 'success')
+    return redirect(url_for('admin_edit_page', page_id=page_id))
+
+
+# ─── SECTION BUTTONS ─────────────────────────────────────────────────────────
+@app.route('/admin/sections/<int:section_id>/buttons/add', methods=['POST'])
+@admin_required
+def admin_add_section_button(section_id):
+    f = request.form
+    with db() as conn:
+        row = conn.cursor().execute("SELECT page_id FROM sections WHERE id=?", (section_id,)).fetchone()
+        n = count(conn, 'section_buttons')
+        sql = ("INSERT INTO section_buttons "
+               "(section_id,label,url,new_tab,style,color,color2,text_color,size,icon,icon_pos,animation,border_radius,ord) "
+               "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+        execute(conn, sql, (
+            section_id, f.get('label','Click Here'), f.get('url','#'),
+            1 if 'new_tab' in f else 0,
+            f.get('style','solid'), f.get('color',''), f.get('color2',''),
+            f.get('text_color',''), f.get('size','md'),
+            f.get('icon',''), f.get('icon_pos','left'),
+            f.get('animation','none'), _safe_int(f.get('border_radius',6)), n))
+        page_id = dict(row)['page_id']
+    flash('Button added!', 'success')
+    return redirect(url_for('admin_edit_page', page_id=page_id))
+
+@app.route('/admin/section-buttons/<int:btn_id>', methods=['POST'])
+@admin_required
+def admin_update_section_button(btn_id):
+    f = request.form
+    with db() as conn:
+        row = conn.cursor().execute(
+            "SELECT sb.*, s.page_id FROM section_buttons sb JOIN sections s ON sb.section_id=s.id WHERE sb.id=?",
+            (btn_id,)).fetchone()
+        sql = ("UPDATE section_buttons SET "
+               "label=?,url=?,new_tab=?,style=?,color=?,color2=?,text_color=?,size=?,"
+               "icon=?,icon_pos=?,animation=?,border_radius=? WHERE id=?")
+        execute(conn, sql, (
+            f.get('label',''), f.get('url','#'),
+            1 if 'new_tab' in f else 0,
+            f.get('style','solid'), f.get('color',''), f.get('color2',''),
+            f.get('text_color',''), f.get('size','md'),
+            f.get('icon',''), f.get('icon_pos','left'),
+            f.get('animation','none'), _safe_int(f.get('border_radius',6)), btn_id))
+        page_id = dict(row)['page_id']
+    flash('Button saved!', 'success')
+    return redirect(url_for('admin_edit_page', page_id=page_id))
+
+@app.route('/admin/section-buttons/<int:btn_id>/delete', methods=['POST'])
+@admin_required
+def admin_delete_section_button(btn_id):
+    with db() as conn:
+        row = conn.cursor().execute(
+            "SELECT sb.section_id, s.page_id FROM section_buttons sb JOIN sections s ON sb.section_id=s.id WHERE sb.id=?",
+            (btn_id,)).fetchone()
+        page_id = dict(row)['page_id'] if row else None
+        execute(conn, "DELETE FROM section_buttons WHERE id=?", (btn_id,))
+    flash('Button deleted.', 'success')
     return redirect(url_for('admin_edit_page', page_id=page_id))
 
 # ─── ADMIN NAV ────────────────────────────────────────────────────────────────
@@ -715,7 +854,7 @@ def admin_update_portfolio_item(item_id):
 
 
 # ─── GALLERY (import extra db helpers) ───────────────────────────────────────
-from database import init_gallery, get_gallery_items, get_gallery_categories, get_all_gallery_items
+from database import init_gallery, get_gallery_items, get_gallery_categories, get_all_gallery_items  # gallery uses media_db
 
 GALLERY_ALLOWED = {'png','jpg','jpeg','webp','gif','mp4','mov','webm','ogg'}
 
@@ -733,11 +872,12 @@ def gallery_page():
         s = get_settings(conn)
         if s['maintenance_mode']:
             return render_template('site/maintenance.html', s=s)
-        init_gallery(conn)
-        items = get_gallery_items(conn, category=cat if cat != 'All' else None)
-        categories = ['All'] + get_gallery_categories(conn)
         nav = get_nav(conn)
         socials = get_socials(conn)
+    with media_db() as mconn:
+        init_gallery(mconn)
+        items = get_gallery_items(mconn, category=cat if cat != 'All' else None)
+        categories = ['All'] + get_gallery_categories(mconn)
     ctx = render_ctx(s, nav, socials)
     return render_template('site/gallery.html', items=items, categories=categories,
                            active_cat=cat, is_video=is_video, **ctx)
@@ -746,9 +886,9 @@ def gallery_page():
 @app.route('/admin/gallery')
 @admin_required
 def admin_gallery():
-    with db() as conn:
-        init_gallery(conn)
-        items = get_all_gallery_items(conn)
+    with media_db() as mconn:
+        init_gallery(mconn)
+        items = get_all_gallery_items(mconn)
     return render_template('admin/gallery.html', items=items, is_video=is_video)
 
 @app.route('/admin/gallery/upload', methods=['POST'])
@@ -758,16 +898,15 @@ def admin_gallery_upload():
     title    = request.form.get('title','')
     caption  = request.form.get('caption','')
     category = request.form.get('category','General').strip() or 'General'
-    with db() as conn:
-        init_gallery(conn)
-        n = count(conn, 'gallery_items')
+    with media_db() as mconn:
+        init_gallery(mconn)
+        n = count(mconn, 'gallery_items')
         for file in files:
             if file and file.filename and gallery_allowed(file.filename):
-                ext  = file.filename.rsplit('.',1)[1].lower()
                 fname = secure_filename(f"gallery_{n}_{file.filename}")
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
                 mtype = 'video' if is_video(fname) else 'image'
-                execute(conn, "INSERT INTO gallery_items (title,caption,media_type,filename,category,ord) VALUES (?,?,?,?,?,?)",
+                execute(mconn, "INSERT INTO gallery_items (title,caption,media_type,filename,category,ord) VALUES (?,?,?,?,?,?)",
                         (title or file.filename, caption, mtype, fname, category, n))
                 n += 1
     flash('Media uploaded!', 'success')
@@ -776,38 +915,38 @@ def admin_gallery_upload():
 @app.route('/admin/gallery/<int:item_id>/delete', methods=['POST'])
 @admin_required
 def admin_gallery_delete(item_id):
-    with db() as conn:
-        init_gallery(conn)
-        cur = execute(conn, "SELECT filename FROM gallery_items WHERE id=?", (item_id,))
+    with media_db() as mconn:
+        init_gallery(mconn)
+        cur = execute(mconn, "SELECT filename FROM gallery_items WHERE id=?", (item_id,))
         row = cur.fetchone()
         if row:
             fname = dict(row)['filename']
             fpath = os.path.join(app.config['UPLOAD_FOLDER'], fname)
             if os.path.exists(fpath):
                 os.remove(fpath)
-        execute(conn, "DELETE FROM gallery_items WHERE id=?", (item_id,))
+        execute(mconn, "DELETE FROM gallery_items WHERE id=?", (item_id,))
     flash('Item deleted.', 'success')
     return redirect(url_for('admin_gallery'))
 
 @app.route('/admin/gallery/<int:item_id>/toggle', methods=['POST'])
 @admin_required
 def admin_gallery_toggle(item_id):
-    with db() as conn:
-        init_gallery(conn)
-        cur = execute(conn, "SELECT enabled FROM gallery_items WHERE id=?", (item_id,))
+    with media_db() as mconn:
+        init_gallery(mconn)
+        cur = execute(mconn, "SELECT enabled FROM gallery_items WHERE id=?", (item_id,))
         row = cur.fetchone()
         if row:
             current = dict(row)['enabled']
-            execute(conn, "UPDATE gallery_items SET enabled=? WHERE id=?", (0 if current else 1, item_id))
+            execute(mconn, "UPDATE gallery_items SET enabled=? WHERE id=?", (0 if current else 1, item_id))
     return redirect(url_for('admin_gallery'))
 
 @app.route('/admin/gallery/<int:item_id>/edit', methods=['POST'])
 @admin_required
 def admin_gallery_edit(item_id):
     f = request.form
-    with db() as conn:
-        init_gallery(conn)
-        execute(conn, "UPDATE gallery_items SET title=?,caption=?,category=? WHERE id=?",
+    with media_db() as mconn:
+        init_gallery(mconn)
+        execute(mconn, "UPDATE gallery_items SET title=?,caption=?,category=? WHERE id=?",
                 (f.get('title',''), f.get('caption',''), f.get('category','General'), item_id))
     flash('Item updated.', 'success')
     return redirect(url_for('admin_gallery'))
