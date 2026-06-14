@@ -299,16 +299,43 @@ def admin_pages():
 @admin_required
 def admin_new_page():
     if request.method == 'POST':
-        title = request.form.get('title','').strip()
-        slug  = request.form.get('slug','').strip()
+        title    = request.form.get('title','').strip()
+        slug     = request.form.get('slug','').strip()
+        template = request.form.get('page_template', 'blank')
         with db() as conn:
             n = count(conn, 'pages')
             execute(conn, "INSERT INTO pages (title,slug,is_home,visible,ord) VALUES (?,?,0,1,?)", (title, slug, n))
             page_id = last_insert_id(conn, 'pages')
-            execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>Edit this content in the admin panel.</p>')",
-                    (page_id, 'hero', title, 'Subtitle goes here'))
-            execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Content','<p>Add your content here.</p>')",
-                    (page_id, 'content'))
+            if template == 'gallery':
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content,gallery_preset) VALUES (?,?,0,1,?,?,'','masonry')",
+                        (page_id, 'gallery', title, 'Browse our work below'))
+            elif template == 'landing':
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>Tell your story here.</p>')",
+                        (page_id, 'hero', title, 'Your tagline goes here'))
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Our Services','<p>Describe your services.</p>')",
+                        (page_id, 'services'))
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,2,1,'About Us','<p>Tell visitors about you.</p>')",
+                        (page_id, 'about'))
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,3,1,'Get In Touch','<p>Contact details here.</p>')",
+                        (page_id, 'contact'))
+            elif template == 'about':
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>Share your story.</p>')",
+                        (page_id, 'hero', title, 'Who we are'))
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Our Story','<p>Your history and mission.</p>')",
+                        (page_id, 'about'))
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,2,1,'Our Portfolio','<p>Showcase your work.</p>')",
+                        (page_id, 'portfolio'))
+            elif template == 'portfolio':
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>A selection of our best work.</p>')",
+                        (page_id, 'hero', title, 'Our Work'))
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Projects','<p>Project showcase.</p>')",
+                        (page_id, 'portfolio'))
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,2,1,'Gallery','')", (page_id, 'gallery'))
+            else:  # blank
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,subheading,content) VALUES (?,?,0,1,?,?,'<p>Edit this content in the admin panel.</p>')",
+                        (page_id, 'hero', title, 'Subtitle goes here'))
+                execute(conn, "INSERT INTO sections (page_id,type,ord,enabled,heading,content) VALUES (?,?,1,1,'Content','<p>Add your content here.</p>')",
+                        (page_id, 'content'))
         flash('Page created!', 'success')
         return redirect(url_for('admin_edit_page', page_id=page_id))
     return render_template('admin/new_page.html')
@@ -371,13 +398,27 @@ def admin_update_section(section_id):
             fname = secure_filename(f"sec_{section_id}_{file.filename}")
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
             image_url = fname
+        # Handle multiple image uploads
+        image_urls_list = [u for u in (sec.get('image_urls') or '').split(',') if u.strip()]
+        for mf in request.files.getlist('multi_images'):
+            if mf and mf.filename and allowed_file(mf.filename):
+                mfname = secure_filename(f"sec_{section_id}_multi_{mf.filename}")
+                mf.save(os.path.join(app.config['UPLOAD_FOLDER'], mfname))
+                image_urls_list.append(mfname)
+        # Remove individual images by index
+        remove_idxs = set(int(x) for x in f.getlist('remove_multi_image') if x.isdigit())
+        image_urls_list = [u for i, u in enumerate(image_urls_list) if i not in remove_idxs]
+
         execute(conn, """
             UPDATE sections SET heading=?,subheading=?,content=?,
             button_text=?,button_link=?,button_new_tab=?,enabled=?,image_url=?,image_alt=?,
             image_position=?,image_size=?,image_overlay=?,image_overlay_color=?,image_blur=?,
             section_bg_color=?,bg_attachment=?,
             icon_style=?,icon_border=?,icon_hover=?,icon_color=?,
-            card_hover=?,card_hover_color=?,card_hover_font_color=?,card_transition_speed=?
+            card_hover=?,card_hover_color=?,card_hover_font_color=?,card_transition_speed=?,
+            heading_color=?,heading_align=?,subheading_color=?,
+            card_bg_color=?,card_border_width=?,card_border_color=?,card_border_radius=?,
+            image_urls=?,image_collage=?,gallery_preset=?
             WHERE id=?
         """, (f.get('heading',''), f.get('subheading',''), f.get('content',''),
               f.get('button_text',''), f.get('button_link',''), btn_new_tab, enabled,
@@ -390,6 +431,12 @@ def admin_update_section(section_id):
               f.get('icon_color',''),
               f.get('card_hover','lift'), f.get('card_hover_color',''),
               f.get('card_hover_font_color',''), f.get('card_transition_speed','normal'),
+              f.get('heading_color',''), f.get('heading_align','left'),
+              f.get('subheading_color',''),
+              f.get('card_bg_color',''), _safe_int(f.get('card_border_width',0)),
+              f.get('card_border_color',''), _safe_int(f.get('card_border_radius',8)),
+              ','.join(image_urls_list), f.get('image_collage','single'),
+              f.get('gallery_preset','masonry'),
               section_id))
         page_id = sec['page_id']
     flash('Section saved!', 'success')
