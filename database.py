@@ -7,12 +7,62 @@ import os, sqlite3
 from contextlib import contextmanager
 
 # ── Connection Setup ──────────────────────────────────────────────────────────
-# Render provides DATABASE_URL as postgres:// — psycopg2 needs postgresql://
+# Main CMS database — set DATABASE_URL for Postgres (Neon/Render), else SQLite
 _RAW_URL = os.environ.get('DATABASE_URL', '')
 DATABASE_URL = _RAW_URL.replace('postgres://', 'postgresql://', 1) if _RAW_URL.startswith('postgres://') else _RAW_URL
-
 USE_POSTGRES = bool(DATABASE_URL and 'postgresql' in DATABASE_URL)
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance', 'clinton.db')
+
+# ── Media / Image database ────────────────────────────────────────────────────
+# Separate DB for gallery, uploads metadata, and section_cards images.
+# Set MEDIA_DATABASE_URL to a different Neon/Postgres connection string.
+# Falls back to the main DATABASE_URL if not set, or local SQLite.
+_MEDIA_RAW = os.environ.get('MEDIA_DATABASE_URL', '')
+MEDIA_DATABASE_URL = _MEDIA_RAW.replace('postgres://', 'postgresql://', 1) if _MEDIA_RAW.startswith('postgres://') else _MEDIA_RAW
+USE_MEDIA_POSTGRES = bool(MEDIA_DATABASE_URL and 'postgresql' in MEDIA_DATABASE_URL)
+MEDIA_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance', 'media.db')
+
+@contextmanager
+def media_db():
+    """Context manager for the media/images database connection."""
+    if USE_MEDIA_POSTGRES:
+        import psycopg2, psycopg2.extras
+        conn = psycopg2.connect(MEDIA_DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+        conn.autocommit = False
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+    else:
+        # Fall back to main Postgres if set, else separate local SQLite
+        if USE_POSTGRES:
+            import psycopg2, psycopg2.extras
+            conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+            conn.autocommit = False
+            try:
+                yield conn
+                conn.commit()
+            except Exception:
+                conn.rollback()
+                raise
+            finally:
+                conn.close()
+        else:
+            os.makedirs(os.path.dirname(MEDIA_DB_PATH), exist_ok=True)
+            conn = sqlite3.connect(MEDIA_DB_PATH)
+            conn.row_factory = sqlite3.Row
+            try:
+                yield conn
+                conn.commit()
+            except Exception:
+                conn.rollback()
+                raise
+            finally:
+                conn.close()
 
 @contextmanager
 def db():
@@ -131,7 +181,45 @@ _SQLITE_SCHEMA = """
         card_border_radius INTEGER DEFAULT 8,
         image_urls TEXT DEFAULT '',
         image_collage TEXT DEFAULT 'single',
-        gallery_preset TEXT DEFAULT 'masonry'
+        gallery_preset TEXT DEFAULT 'masonry',
+        bg_image TEXT DEFAULT '',
+        carousel_speed INTEGER DEFAULT 4000,
+        heading_gradient TEXT DEFAULT '',
+        heading_gradient2 TEXT DEFAULT '',
+        section_bg_gradient TEXT DEFAULT '',
+        section_bg_gradient2 TEXT DEFAULT '',
+        section_bg_gradient_dir TEXT DEFAULT '135deg',
+        card_bg_gradient TEXT DEFAULT '',
+        card_bg_gradient2 TEXT DEFAULT ''
+    );
+    CREATE TABLE IF NOT EXISTS section_cards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        section_id INTEGER REFERENCES sections(id) ON DELETE CASCADE,
+        title TEXT DEFAULT '',
+        description TEXT DEFAULT '',
+        icon TEXT DEFAULT '',
+        image_url TEXT DEFAULT '',
+        link TEXT DEFAULT '',
+        link_new_tab INTEGER DEFAULT 0,
+        ord INTEGER DEFAULT 0,
+        enabled INTEGER DEFAULT 1
+    );
+    CREATE TABLE IF NOT EXISTS section_buttons (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        section_id INTEGER REFERENCES sections(id) ON DELETE CASCADE,
+        label TEXT DEFAULT 'Click Here',
+        url TEXT DEFAULT '#',
+        new_tab INTEGER DEFAULT 0,
+        style TEXT DEFAULT 'solid',
+        color TEXT DEFAULT '',
+        color2 TEXT DEFAULT '',
+        text_color TEXT DEFAULT '',
+        size TEXT DEFAULT 'md',
+        icon TEXT DEFAULT '',
+        icon_pos TEXT DEFAULT 'left',
+        animation TEXT DEFAULT 'none',
+        border_radius INTEGER DEFAULT 6,
+        ord INTEGER DEFAULT 0
     );
     CREATE TABLE IF NOT EXISTS nav_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -221,6 +309,22 @@ _PG_TABLES = [
         icon_style TEXT DEFAULT 'default', icon_border TEXT DEFAULT 'none', icon_hover TEXT DEFAULT 'zoom',
         button_text TEXT DEFAULT '', button_link TEXT DEFAULT '',
         button_new_tab INTEGER DEFAULT 0)""",
+    """CREATE TABLE IF NOT EXISTS section_cards (
+        id SERIAL PRIMARY KEY,
+        section_id INTEGER REFERENCES sections(id) ON DELETE CASCADE,
+        title TEXT DEFAULT '', description TEXT DEFAULT '',
+        icon TEXT DEFAULT '', image_url TEXT DEFAULT '',
+        link TEXT DEFAULT '', link_new_tab INTEGER DEFAULT 0,
+        ord INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)""",
+    """CREATE TABLE IF NOT EXISTS section_buttons (
+        id SERIAL PRIMARY KEY,
+        section_id INTEGER REFERENCES sections(id) ON DELETE CASCADE,
+        label TEXT DEFAULT 'Click Here', url TEXT DEFAULT '#',
+        new_tab INTEGER DEFAULT 0, style TEXT DEFAULT 'solid',
+        color TEXT DEFAULT '', color2 TEXT DEFAULT '',
+        text_color TEXT DEFAULT '', size TEXT DEFAULT 'md',
+        icon TEXT DEFAULT '', icon_pos TEXT DEFAULT 'left',
+        animation TEXT DEFAULT 'none', border_radius INTEGER DEFAULT 6, ord INTEGER DEFAULT 0)""",
     """CREATE TABLE IF NOT EXISTS nav_items (
         id SERIAL PRIMARY KEY, label TEXT, url TEXT,
         icon TEXT DEFAULT '', ord INTEGER DEFAULT 0, open_new_tab INTEGER DEFAULT 0)""",
@@ -319,6 +423,15 @@ def _migrate(conn):
         ("sections", "image_urls",                 "TEXT DEFAULT ''"),
         ("sections", "image_collage",              "TEXT DEFAULT 'single'"),
         ("sections", "gallery_preset",             "TEXT DEFAULT 'masonry'"),
+        ("sections", "bg_image",                     "TEXT DEFAULT ''"),
+        ("sections", "carousel_speed",               "INTEGER DEFAULT 4000"),
+        ("sections", "heading_gradient",             "TEXT DEFAULT ''"),
+        ("sections", "heading_gradient2",            "TEXT DEFAULT ''"),
+        ("sections", "section_bg_gradient",          "TEXT DEFAULT ''"),
+        ("sections", "section_bg_gradient2",         "TEXT DEFAULT ''"),
+        ("sections", "section_bg_gradient_dir",      "TEXT DEFAULT '135deg'"),
+        ("sections", "card_bg_gradient",             "TEXT DEFAULT ''"),
+        ("sections", "card_bg_gradient2",            "TEXT DEFAULT ''"),
     ]
     for table, col, col_def in migrations:
         if USE_POSTGRES:
@@ -356,6 +469,10 @@ _SECTION_DEFAULTS = {
     'subheading_color': '', 'card_bg_color': '',
     'card_border_width': 0, 'card_border_color': '', 'card_border_radius': 8,
     'image_urls': '', 'image_collage': 'single', 'gallery_preset': 'masonry',
+    'bg_image': '', 'carousel_speed': 4000,
+    'heading_gradient': '', 'heading_gradient2': '',
+    'section_bg_gradient': '', 'section_bg_gradient2': '', 'section_bg_gradient_dir': '135deg',
+    'card_bg_gradient': '', 'card_bg_gradient2': '',
 }
 
 def _section(d):
@@ -368,6 +485,23 @@ def _section(d):
     try: out['image_blur'] = int(out['image_blur'] or 0)
     except: out['image_blur'] = 0
     return out
+
+def init_section_media(conn):
+    """Init section_cards and section_buttons in the media DB if storing them there."""
+    pass  # section_cards are in main db; only gallery_items move to media_db
+
+def get_section_buttons(conn, section_id, enabled_only=False):
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM section_buttons WHERE section_id=? ORDER BY ord,id", (section_id,))
+    return [dict(r) for r in cur.fetchall()]
+
+def get_section_cards(conn, section_id, enabled_only=False):
+    cur = conn.cursor()
+    if enabled_only:
+        cur.execute("SELECT * FROM section_cards WHERE section_id=? AND enabled=1 ORDER BY ord,id", (section_id,))
+    else:
+        cur.execute("SELECT * FROM section_cards WHERE section_id=? ORDER BY ord,id", (section_id,))
+    return [dict(r) for r in cur.fetchall()]
 
 def get_settings(conn):
     cur = conn.cursor()
@@ -532,7 +666,8 @@ _GALLERY_PG = """CREATE TABLE IF NOT EXISTS gallery_items (
     enabled INTEGER DEFAULT 1, created_at TIMESTAMP DEFAULT NOW())"""
 
 def init_gallery(conn):
-    if USE_POSTGRES:
+    """Init gallery table. Pass a media_db() connection for the media database."""
+    if USE_MEDIA_POSTGRES or USE_POSTGRES:
         conn.cursor().execute(_GALLERY_PG)
     else:
         conn.executescript(_GALLERY_SQLITE)
