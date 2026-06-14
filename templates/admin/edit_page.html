@@ -127,7 +127,7 @@
 <div class="section-block">
     <div class="section-header" onclick="this.nextElementSibling.classList.toggle('open')">
         <div class="section-header-left">
-            <i class="fa-solid fa-{% if sec.type=='hero' %}star{% elif sec.type=='services' %}gears{% elif sec.type=='about' %}user{% elif sec.type=='portfolio' %}briefcase{% elif sec.type=='contact' %}envelope{% elif sec.type=='gallery' %}images{% else %}file-lines{% endif %}" style="color:var(--primary);"></i>
+            <i class="fa-solid fa-{% if sec.type=='hero' %}star{% elif sec.type=='services' %}gears{% elif sec.type=='about' %}user{% elif sec.type=='portfolio' %}briefcase{% elif sec.type=='contact' %}envelope{% elif sec.type=='gallery' %}images{% elif sec.type=='carousel' %}rotate{% else %}file-lines{% endif %}" style="color:var(--primary);"></i>
             <strong>{{ sec.heading or '(No heading)' }}</strong>
             <span class="type-badge">{{ sec.type }}</span>
             {% if not sec.enabled %}<span class="badge badge-red" style="font-size:0.7rem;">Hidden</span>{% endif %}
@@ -531,6 +531,64 @@
                                 style="flex:1;">
                         </div>
                     </div>
+                    <div class="form-group full">
+                        <label>Heading Gradient <span style="font-size:0.72rem;color:var(--text-muted);">— overrides heading color when set</span></label>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <input type="color" name="heading_gradient" value="{{ sec.heading_gradient or '#7c3aed' }}"
+                                style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;">
+                            <span style="font-size:0.8rem;color:var(--text-muted);">→</span>
+                            <input type="color" name="heading_gradient2" value="{{ sec.heading_gradient2 or '#db2777' }}"
+                                style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;">
+                            <input type="text" name="heading_gradient_txt" placeholder="e.g. #7c3aed (leave blank to disable)"
+                                value="{{ sec.heading_gradient or '' }}"
+                                oninput="this.closest('form').querySelector('[name=heading_gradient]').value=this.value||'#7c3aed'"
+                                style="flex:1;min-width:160px;">
+                            <button type="button" onclick="this.closest('form').querySelector('[name=heading_gradient]').value='';this.closest('form').querySelector('[name=heading_gradient2]').value='';this.previousElementSibling.value='';"
+                                style="padding:6px 12px;background:var(--danger)18;color:var(--danger);border:1px solid var(--danger)40;border-radius:6px;cursor:pointer;font-size:0.78rem;">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SECTION BACKGROUND GRADIENT ── -->
+            <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:4px;">
+                <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">
+                    <i class="fa-solid fa-swatchbook" style="color:var(--primary);margin-right:6px;"></i> Background Gradient
+                    <span style="font-size:0.7rem;font-weight:400;margin-left:6px;">Overrides solid bg color when set</span>
+                </p>
+                <div class="form-grid" style="gap:14px;">
+                    <div class="form-group">
+                        <label>Color 1 → Color 2</label>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="color" name="section_bg_gradient" value="{{ sec.section_bg_gradient or '#7c3aed' }}"
+                                style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;padding:2px;cursor:pointer;">
+                            <span>→</span>
+                            <input type="color" name="section_bg_gradient2" value="{{ sec.section_bg_gradient2 or '#db2777' }}"
+                                style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;padding:2px;cursor:pointer;">
+                            <button type="button" onclick="this.closest('form').querySelector('[name=section_bg_gradient]').value='';this.closest('form').querySelector('[name=section_bg_gradient2]').value='';"
+                                style="padding:6px 12px;background:var(--danger)18;color:var(--danger);border:1px solid var(--danger)40;border-radius:6px;cursor:pointer;font-size:0.78rem;">Clear</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Gradient Direction</label>
+                        <select name="section_bg_gradient_dir" style="max-width:200px;">
+                            {% for val,lbl in [('135deg','↘ Diagonal'),('to right','→ Horizontal'),('to bottom','↓ Vertical'),('to top right','↗ Up-Right'),('circle','◎ Radial')] %}
+                            <option value="{{ val }}" {% if (sec.section_bg_gradient_dir or '135deg')==val %}selected{% endif %}>{{ lbl }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label>Card Background Gradient</label>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="color" name="card_bg_gradient" value="{{ sec.card_bg_gradient or '#ffffff' }}"
+                                style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;padding:2px;cursor:pointer;">
+                            <span>→</span>
+                            <input type="color" name="card_bg_gradient2" value="{{ sec.card_bg_gradient2 or '#f3f4f6' }}"
+                                style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;padding:2px;cursor:pointer;">
+                            <button type="button" onclick="this.closest('form').querySelector('[name=card_bg_gradient]').value='';this.closest('form').querySelector('[name=card_bg_gradient2]').value='';"
+                                style="padding:6px 12px;background:var(--danger)18;color:var(--danger);border:1px solid var(--danger)40;border-radius:6px;cursor:pointer;font-size:0.78rem;">Clear</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -573,6 +631,309 @@
                             value="{{ sec.card_border_radius or 8 }}" style="max-width:100px;">
                     </div>
                 </div>
+            </div>
+
+            <!-- ── SECTION BUTTONS ── -->
+            <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:4px;">
+                <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">
+                    <i class="fa-solid fa-hand-pointer" style="color:var(--primary);margin-right:6px;"></i> Buttons
+                    <span style="font-size:0.7rem;font-weight:400;margin-left:8px;">Add multiple styled buttons — gradient, glow, rainbow &amp; more</span>
+                </p>
+                {% set btns = sec_buttons.get(sec.id, []) %}
+                {% if btns %}
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">
+                {% for btn in btns %}
+                <div style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg);">
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);">
+                        <span style="flex:1;font-size:0.88rem;font-weight:700;">{{ btn.label }}</span>
+                        <span style="font-size:0.72rem;background:var(--primary)20;color:var(--primary);padding:2px 8px;border-radius:4px;">{{ btn.style }}</span>
+                        <button type="button" onclick="this.closest('[data-btn]').querySelector('.btn-body').classList.toggle('hidden')"
+                            style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:0.8rem;">
+                            <i class="fa-solid fa-chevron-down"></i> Edit
+                        </button>
+                        <form method="POST" action="/admin/section-buttons/{{ btn.id }}/delete" style="margin:0;"
+                              onsubmit="return confirm('Delete this button?');">
+                            <button type="submit" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.8rem;">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                    <div data-btn>
+                    <div class="btn-body hidden" style="padding:14px;">
+                        <form method="POST" action="/admin/section-buttons/{{ btn.id }}">
+                            <div class="form-grid" style="gap:12px;">
+                                <div class="form-group"><label>Label</label><input type="text" name="label" value="{{ btn.label }}"></div>
+                                <div class="form-group"><label>URL</label><input type="text" name="url" value="{{ btn.url }}" placeholder="/page/about"></div>
+                                <div class="form-group">
+                                    <label>Style</label>
+                                    <select name="style" onchange="previewBtn(this)">
+                                        {% for s in ['solid','outline','ghost','soft','gradient','glass','neon-glow','rainbow','pulse','shimmer','3d','underline'] %}
+                                        <option value="{{ s }}" {% if btn.style==s %}selected{% endif %}>{{ s|title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Size</label>
+                                    <select name="size">
+                                        {% for s in ['sm','md','lg','xl'] %}
+                                        <option value="{{ s }}" {% if btn.size==s %}selected{% endif %}>{{ s|upper }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Color 1 <span style="font-size:0.72rem;color:var(--text-muted);">(bg / border)</span></label>
+                                    <div style="display:flex;gap:6px;align-items:center;">
+                                        <input type="color" name="color" value="{{ btn.color or '#7c3aed' }}"
+                                            style="width:40px;height:34px;border-radius:5px;border:1.5px solid var(--border);padding:2px;cursor:pointer;">
+                                        <input type="text" value="{{ btn.color or '' }}" placeholder="empty=theme"
+                                            oninput="this.previousElementSibling.value=this.value||'#7c3aed';this.closest('form').querySelector('[name=color]').value=this.value"
+                                            style="flex:1;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Color 2 <span style="font-size:0.72rem;color:var(--text-muted);">(gradient end)</span></label>
+                                    <div style="display:flex;gap:6px;align-items:center;">
+                                        <input type="color" name="color2" value="{{ btn.color2 or '#db2777' }}"
+                                            style="width:40px;height:34px;border-radius:5px;border:1.5px solid var(--border);padding:2px;cursor:pointer;">
+                                        <input type="text" value="{{ btn.color2 or '' }}" placeholder="empty=no gradient"
+                                            oninput="this.previousElementSibling.value=this.value||'#db2777';this.closest('form').querySelector('[name=color2]').value=this.value"
+                                            style="flex:1;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Text Color</label>
+                                    <div style="display:flex;gap:6px;align-items:center;">
+                                        <input type="color" name="text_color" value="{{ btn.text_color or '#ffffff' }}"
+                                            style="width:40px;height:34px;border-radius:5px;border:1.5px solid var(--border);padding:2px;cursor:pointer;">
+                                        <input type="text" value="{{ btn.text_color or '' }}" placeholder="empty=auto"
+                                            oninput="this.previousElementSibling.value=this.value||'#ffffff';this.closest('form').querySelector('[name=text_color]').value=this.value"
+                                            style="flex:1;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Border Radius (px)</label>
+                                    <input type="number" name="border_radius" min="0" max="80" value="{{ btn.border_radius or 6 }}" style="max-width:90px;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Icon <span style="font-size:0.72rem;color:var(--text-muted);">(FA class)</span></label>
+                                    <input type="text" name="icon" value="{{ btn.icon or '' }}" placeholder="fa-solid fa-arrow-right">
+                                </div>
+                                <div class="form-group">
+                                    <label>Icon Position</label>
+                                    <select name="icon_pos">
+                                        <option value="left" {% if btn.icon_pos=='left' %}selected{% endif %}>Left</option>
+                                        <option value="right" {% if btn.icon_pos=='right' %}selected{% endif %}>Right</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="display:flex;align-items:flex-end;gap:12px;">
+                                    <label class="checkbox-row" style="margin:0;">
+                                        <input type="checkbox" name="new_tab" {% if btn.new_tab %}checked{% endif %}> New tab
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:10px;">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Button
+                            </button>
+                        </form>
+                    </div>
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Add new button -->
+                <form method="POST" action="/admin/sections/{{ sec.id }}/buttons/add"
+                      style="margin-top:14px;padding:14px;border:1.5px dashed var(--border);border-radius:8px;background:var(--bg);">
+                    <p style="font-size:0.8rem;font-weight:700;margin-bottom:12px;color:var(--text-muted);">
+                        <i class="fa-solid fa-plus" style="color:var(--primary);"></i> Add Button
+                    </p>
+                    <div class="form-grid" style="gap:10px;">
+                        <div class="form-group"><label>Label</label><input type="text" name="label" placeholder="Get Started" required></div>
+                        <div class="form-group"><label>URL</label><input type="text" name="url" placeholder="/page/contact" required></div>
+                        <div class="form-group">
+                            <label>Style</label>
+                            <select name="style">
+                                {% for s in ['solid','outline','ghost','soft','gradient','glass','neon-glow','rainbow','pulse','shimmer','3d','underline'] %}
+                                <option value="{{ s }}">{{ s|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Size</label>
+                            <select name="size"><option value="sm">SM</option><option value="md" selected>MD</option><option value="lg">LG</option><option value="xl">XL</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Color 1</label>
+                            <input type="color" name="color" value="#7c3aed" style="width:44px;height:34px;border-radius:5px;border:1.5px solid var(--border);padding:2px;cursor:pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label>Color 2 (gradient)</label>
+                            <input type="color" name="color2" value="#db2777" style="width:44px;height:34px;border-radius:5px;border:1.5px solid var(--border);padding:2px;cursor:pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label>Icon (FA)</label>
+                            <input type="text" name="icon" placeholder="fa-solid fa-arrow-right">
+                        </div>
+                        <div class="form-group" style="display:flex;align-items:flex-end;">
+                            <label class="checkbox-row" style="margin:0;"><input type="checkbox" name="new_tab"> New tab</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="margin-top:10px;">
+                        <i class="fa-solid fa-plus"></i> Add Button
+                    </button>
+                </form>
+            </div>
+
+            <!-- ── BACKGROUND IMAGE ── -->
+            <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:4px;">
+                <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">
+                    <i class="fa-solid fa-image" style="color:var(--primary);margin-right:6px;"></i> Section Background Image
+                </p>
+                <div class="form-group">
+                    <label>Upload Background Image</label>
+                    <input type="file" name="bg_image_file" accept="image/*" style="margin-top:6px;">
+                    <span class="form-hint">Covers the entire section behind content. Works with overlay settings above.</span>
+                </div>
+                {% if sec.bg_image %}
+                <div style="display:flex;align-items:center;gap:12px;margin-top:8px;padding:10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+                    <img src="/uploads/{{ sec.bg_image }}" style="width:80px;height:50px;object-fit:cover;border-radius:4px;" alt="bg">
+                    <div style="flex:1;">
+                        <div style="font-size:0.8rem;font-weight:600;">Current: {{ sec.bg_image }}</div>
+                    </div>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.8rem;color:var(--danger);">
+                        <input type="checkbox" name="clear_bg_image" value="1"> Remove
+                    </label>
+                </div>
+                {% endif %}
+                {% if sec.type == 'carousel' %}
+                <div class="form-group" style="margin-top:14px;">
+                    <label>Slide Speed (ms)</label>
+                    <input type="number" name="carousel_speed" min="1000" max="15000" step="500"
+                        value="{{ sec.carousel_speed or 4000 }}" style="max-width:140px;">
+                    <span class="form-hint">Time each slide shows. 4000 = 4 seconds.</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ── SECTION CARDS ── -->
+            <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:4px;">
+                <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">
+                    <i class="fa-solid fa-table-cells-large" style="color:var(--primary);margin-right:6px;"></i>
+                    Section Cards
+                    <span style="font-size:0.7rem;font-weight:400;color:var(--text-muted);margin-left:8px;">Image, icon &amp; text cards shown in a grid below this section's content</span>
+                </p>
+
+                {% set cards = sec_cards.get(sec.id, []) %}
+                {% if cards %}
+                <div style="display:grid;gap:12px;margin-top:16px;">
+                {% for card in cards %}
+                <div style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg);">
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);">
+                        {% if card.image_url %}
+                        <img src="/uploads/{{ card.image_url }}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                        {% elif card.icon %}
+                        <i class="{{ card.icon }}" style="font-size:1.3rem;color:var(--primary);width:36px;text-align:center;flex-shrink:0;"></i>
+                        {% else %}
+                        <i class="fa-solid fa-square" style="font-size:1.3rem;color:var(--border);width:36px;text-align:center;flex-shrink:0;"></i>
+                        {% endif %}
+                        <strong style="flex:1;font-size:0.88rem;">{{ card.title or 'Untitled Card' }}</strong>
+                        {% if not card.enabled %}<span style="font-size:0.7rem;color:var(--danger);font-weight:700;">HIDDEN</span>{% endif %}
+                        <button type="button" onclick="this.closest('[data-card]').querySelector('.card-body').classList.toggle('hidden')"
+                            style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:0.8rem;">
+                            <i class="fa-solid fa-chevron-down"></i> Edit
+                        </button>
+                        <form method="POST" action="/admin/section-cards/{{ card.id }}/delete" style="margin:0;"
+                              onsubmit="return confirm('Delete this card?');">
+                            <button type="submit" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.8rem;">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                    <div data-card class="">
+                    <div class="card-body hidden" style="padding:14px;">
+                        <form method="POST" action="/admin/section-cards/{{ card.id }}" enctype="multipart/form-data">
+                            <div class="form-grid" style="gap:12px;">
+                                <div class="form-group">
+                                    <label>Title</label>
+                                    <input type="text" name="title" value="{{ card.title }}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Icon <span style="font-size:0.72rem;color:var(--text-muted);">(FA class, optional)</span></label>
+                                    <input type="text" name="icon" value="{{ card.icon or '' }}" placeholder="fa-solid fa-star">
+                                </div>
+                                <div class="form-group full">
+                                    <label>Description</label>
+                                    <textarea name="description" rows="2">{{ card.description }}</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Card Image</label>
+                                    <input type="file" name="image" accept="image/*">
+                                    {% if card.image_url %}
+                                    <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+                                        <img src="/uploads/{{ card.image_url }}" style="width:48px;height:48px;object-fit:cover;border-radius:4px;">
+                                        <label style="font-size:0.78rem;color:var(--danger);cursor:pointer;">
+                                            <input type="checkbox" name="clear_image" value="1"> Remove image
+                                        </label>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    <label>Link URL <span style="font-size:0.72rem;color:var(--text-muted);">(optional)</span></label>
+                                    <input type="text" name="link" value="{{ card.link or '' }}" placeholder="/page/project">
+                                </div>
+                                <div class="form-group" style="display:flex;align-items:flex-end;gap:16px;">
+                                    <label class="checkbox-row" style="margin:0;">
+                                        <input type="checkbox" name="link_new_tab" {% if card.link_new_tab %}checked{% endif %}> New tab
+                                    </label>
+                                    <label class="checkbox-row" style="margin:0;">
+                                        <input type="checkbox" name="enabled" {% if card.enabled %}checked{% endif %}> Visible
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:10px;">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Card
+                            </button>
+                        </form>
+                    </div>
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Add new card -->
+                <form method="POST" action="/admin/sections/{{ sec.id }}/cards/add" enctype="multipart/form-data"
+                      style="margin-top:16px;padding:14px;border:1.5px dashed var(--border);border-radius:8px;background:var(--bg);">
+                    <p style="font-size:0.8rem;font-weight:700;margin-bottom:12px;color:var(--text-muted);">
+                        <i class="fa-solid fa-plus" style="color:var(--primary);"></i> Add Card
+                    </p>
+                    <div class="form-grid" style="gap:10px;">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" name="title" placeholder="Card Title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Icon <span style="font-size:0.72rem;color:var(--text-muted);">(FA class)</span></label>
+                            <input type="text" name="icon" placeholder="fa-solid fa-star">
+                        </div>
+                        <div class="form-group full">
+                            <label>Description</label>
+                            <textarea name="description" rows="2" placeholder="Short description..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Image</label>
+                            <input type="file" name="image" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label>Link</label>
+                            <input type="text" name="link" placeholder="/page/project">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="margin-top:8px;">
+                        <i class="fa-solid fa-plus"></i> Add Card
+                    </button>
+                </form>
             </div>
 
             <!-- ── MULTI-IMAGE / COLLAGE ── -->
@@ -676,7 +1037,8 @@
                 ('about','About','user'),
                 ('portfolio','Portfolio','briefcase'),
                 ('contact','Contact','envelope'),
-                ('gallery','Gallery','images')
+                ('gallery','Gallery','images'),
+                ('carousel','Carousel','rotate')
             ] %}
             <label style="border:2px solid var(--border); border-radius:8px; padding:14px; text-align:center; cursor:pointer; transition:0.15s;" onclick="this.parentElement.querySelectorAll('label').forEach(e=>e.style.borderColor='var(--border)'); this.style.borderColor='var(--primary)';">
                 <input type="radio" name="type" value="{{ t }}" style="display:none;" {% if loop.first %}checked{% endif %}>
