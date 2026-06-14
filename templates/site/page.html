@@ -12,12 +12,56 @@
     </div>
 </section>
 
+<style>
+/* ── Collage layouts ───────────────────────────────── */
+.collage-grid { display:grid; gap:8px; margin-bottom:28px; border-radius:var(--radius); overflow:hidden; }
+.collage-grid img { width:100%; height:100%; object-fit:cover; display:block; }
+.collage-2    { grid-template-columns:1fr 1fr; }
+.collage-3    { grid-template-columns:2fr 1fr; grid-template-rows:1fr 1fr; }
+.collage-3 img:first-child { grid-row:1/3; }
+.collage-4    { grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; }
+.collage-5    { grid-template-columns:2fr 1fr 1fr; grid-template-rows:1fr 1fr; }
+.collage-5 img:first-child { grid-row:1/3; }
+/* ── Gallery presets ────────────────────────────────── */
+.gallery-masonry  { columns:3; column-gap:12px; }
+.gallery-masonry  .g-item { break-inside:avoid; margin-bottom:12px; }
+.gallery-masonry  img { width:100%; border-radius:var(--radius); display:block; }
+.gallery-grid2    { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+.gallery-grid3    { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.gallery-grid4    { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.gallery-grid2 img,.gallery-grid3 img,.gallery-grid4 img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:var(--radius); display:block; }
+.gallery-filmstrip { display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; }
+.gallery-filmstrip img { height:220px; width:auto; border-radius:var(--radius); flex-shrink:0; }
+.gallery-hero   { display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:auto auto; gap:8px; }
+.gallery-hero img:first-child { grid-column:1/3; grid-row:1/3; aspect-ratio:4/3; object-fit:cover; border-radius:var(--radius); }
+.gallery-hero img:not(:first-child) { aspect-ratio:1; object-fit:cover; border-radius:var(--radius); }
+@media(max-width:700px){
+  .collage-3,.collage-5,.gallery-grid3,.gallery-grid4,.gallery-hero { grid-template-columns:1fr 1fr; }
+  .collage-3 img:first-child,.collage-5 img:first-child { grid-row:auto; }
+  .gallery-masonry { columns:2; }
+}
+@media(max-width:480px){
+  .collage-2,.collage-4,.gallery-grid2 { grid-template-columns:1fr 1fr; }
+  .gallery-masonry,.gallery-grid3,.gallery-grid4 { columns:1; grid-template-columns:1fr; }
+}
+</style>
+
 {% for sec in sections %}
+{% set imgs = sec.image_urls.split(',') | select | list if sec.image_urls else [] %}
+{% set heading_style = 'color:' ~ sec.heading_color ~ ';' if sec.heading_color else '' %}
+{% set heading_align = 'text-align:' ~ (sec.heading_align or 'left') ~ ';' %}
+{% set sub_style = 'color:' ~ sec.subheading_color ~ ';' if sec.subheading_color else '' %}
+{% set card_style %}
+  {% if sec.card_bg_color %}background:{{ sec.card_bg_color }};{% endif %}
+  {% if sec.card_border_width and sec.card_border_width|int > 0 %}border:{{ sec.card_border_width }}px solid {{ sec.card_border_color or 'var(--border)' }};{% endif %}
+  border-radius:{{ sec.card_border_radius or 8 }}px;
+{% endset %}
+
 {% if sec.type == 'hero' %}
 <section style="padding: var(--section-padding);">
     <div class="container">
-        <h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>
-        {% if sec.subheading %}<p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>{% endif %}
+        {% if sec.heading %}<h2 class="section-heading animate-on-scroll" style="{{ heading_style }}{{ heading_align }}">{{ sec.heading }}</h2>{% endif %}
+        {% if sec.subheading %}<p class="section-sub animate-on-scroll" style="{{ sub_style }}">{{ sec.subheading }}</p>{% endif %}
         {% if sec.content %}<div class="content-body animate-on-scroll">{{ sec.content | safe }}</div>{% endif %}
         {% if sec.button_text %}
         <div style="margin-top:28px;">
@@ -27,15 +71,52 @@
     </div>
 </section>
 
-{% elif sec.type in ['content', 'services', 'about', 'portfolio', 'contact'] %}
-<section>
+{% elif sec.type == 'gallery' %}
+{# ── GALLERY SECTION ──────────────────────────────────────────────── #}
+<section style="padding: var(--section-padding); {{ 'background:' ~ sec.section_bg_color ~ ';' if sec.section_bg_color }}">
     <div class="container">
-        {% if sec.heading %}<h2 class="section-heading animate-on-scroll">{{ sec.heading }}</h2>{% endif %}
-        {% if sec.subheading %}<p class="section-sub animate-on-scroll">{{ sec.subheading }}</p>{% endif %}
-        {% if sec.image_url %}
-        <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt }}"
-             style="border-radius: var(--radius); margin-bottom: 32px; max-height: 400px; width: 100%; object-fit: cover;" class="animate-on-scroll">
+        {% if sec.heading %}<h2 class="section-heading animate-on-scroll" style="{{ heading_style }}{{ heading_align }}">{{ sec.heading }}</h2>{% endif %}
+        {% if sec.subheading %}<p class="section-sub animate-on-scroll" style="{{ sub_style }}">{{ sec.subheading }}</p>{% endif %}
+        {% set preset = sec.gallery_preset or 'masonry' %}
+        <div class="gallery-{{ preset }}">
+          {% for img in imgs %}
+          <div class="g-item">
+            <img src="/uploads/{{ img }}" alt="Gallery image {{ loop.index }}" loading="lazy">
+          </div>
+          {% endfor %}
+        </div>
+        {% if sec.button_text %}
+        <div style="margin-top:28px;">
+            <a href="{{ sec.button_link or '#' }}" class="btn btn-primary" {% if sec.get('button_new_tab') %}target="_blank"{% endif %}>{{ sec.button_text }}</a>
+        </div>
         {% endif %}
+    </div>
+</section>
+
+{% elif sec.type in ['content', 'services', 'about', 'portfolio', 'contact'] %}
+<section style="{{ 'background:' ~ sec.section_bg_color ~ ';' if sec.section_bg_color }}">
+    <div class="container" style="{{ card_style }}padding:0;">
+        {% if sec.heading %}<h2 class="section-heading animate-on-scroll" style="{{ heading_style }}{{ heading_align }}">{{ sec.heading }}</h2>{% endif %}
+        {% if sec.subheading %}<p class="section-sub animate-on-scroll" style="{{ sub_style }}">{{ sec.subheading }}</p>{% endif %}
+
+        {# ── Single image (original) ───────── #}
+        {% if sec.image_url and (not imgs or sec.image_collage == 'single') %}
+        <img src="/uploads/{{ sec.image_url }}" alt="{{ sec.image_alt }}"
+             style="border-radius:var(--radius); margin-bottom:32px; max-height:400px; width:100%; object-fit:cover;" class="animate-on-scroll">
+
+        {# ── Multi-image collage ───────────── #}
+        {% elif imgs %}
+          {% set n = imgs|length %}
+          {% set layout = sec.image_collage or 'single' %}
+          {% if layout == 'single' %}
+            <img src="/uploads/{{ imgs[0] }}" alt="Section image" style="border-radius:var(--radius);margin-bottom:32px;max-height:400px;width:100%;object-fit:cover;" class="animate-on-scroll">
+          {% else %}
+            <div class="collage-grid collage-{{ [n, 5]|min }} animate-on-scroll" style="max-height:500px;">
+              {% for img in imgs[:5] %}<img src="/uploads/{{ img }}" alt="Image {{ loop.index }}" loading="lazy">{% endfor %}
+            </div>
+          {% endif %}
+        {% endif %}
+
         <div class="content-body animate-on-scroll">{{ sec.content | safe }}</div>
         {% if sec.button_text %}
         <div style="margin-top:28px;">
