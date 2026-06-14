@@ -462,7 +462,8 @@ _SECTION_DEFAULTS = {
     'image_position': 'center', 'image_size': 'cover',
     'image_overlay': 0.0, 'image_overlay_color': '#000000', 'image_blur': 0,
     'section_bg_color': '', 'bg_attachment': 'scroll',
-    'icon_style': 'default', 'icon_border': 'none', 'icon_hover': 'zoom',
+    'icon_style': 'default', 'icon_border': 'none', 'icon_hover': 'zoom', 'icon_color': '',
+    'card_hover': 'lift', 'card_hover_color': '', 'card_hover_font_color': '', 'card_transition_speed': 'normal',
     'button_text': '', 'button_link': '', 'button_new_tab': 0,
     'heading': '', 'subheading': '', 'content': '', 'enabled': 1,
     'heading_color': '', 'heading_align': 'left',
@@ -492,15 +493,17 @@ def init_section_media(conn):
 
 def get_section_buttons(conn, section_id, enabled_only=False):
     cur = conn.cursor()
-    cur.execute("SELECT * FROM section_buttons WHERE section_id=? ORDER BY ord,id", (section_id,))
+    p = _p()
+    cur.execute(f"SELECT * FROM section_buttons WHERE section_id={p} ORDER BY ord,id", (section_id,))
     return [dict(r) for r in cur.fetchall()]
 
 def get_section_cards(conn, section_id, enabled_only=False):
     cur = conn.cursor()
+    p = _p()
     if enabled_only:
-        cur.execute("SELECT * FROM section_cards WHERE section_id=? AND enabled=1 ORDER BY ord,id", (section_id,))
+        cur.execute(f"SELECT * FROM section_cards WHERE section_id={p} AND enabled=1 ORDER BY ord,id", (section_id,))
     else:
-        cur.execute("SELECT * FROM section_cards WHERE section_id=? ORDER BY ord,id", (section_id,))
+        cur.execute(f"SELECT * FROM section_cards WHERE section_id={p} ORDER BY ord,id", (section_id,))
     return [dict(r) for r in cur.fetchall()]
 
 def get_settings(conn):
