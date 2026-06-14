@@ -209,6 +209,16 @@
         </form>
     </div>
 </div>
+{% elif status.running %}
+<!-- Running state -->
+<div class="result-card" style="background:var(--primary)10;border:1px solid var(--primary)40;">
+    <div class="result-icon" style="color:var(--primary);"><i class="fa-solid fa-spinner fa-spin"></i></div>
+    <div>
+        <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:8px;">Export in Progress…</h3>
+        <p style="font-size:0.9rem;color:var(--muted);">Please wait. The page will auto-refresh when done.</p>
+        <meta http-equiv="refresh" content="3">
+    </div>
+</div>
 {% else %}
 <!-- Export trigger -->
 <div class="card">
