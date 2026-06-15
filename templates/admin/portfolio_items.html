@@ -4,13 +4,17 @@
 {% block content %}
 
 <p style="color:var(--muted); font-size:0.9rem; margin-bottom:24px;">
-    Portfolio cards appear in the <strong>Portfolio</strong> section of your homepage. Each card has an icon, title, description, and optional link.
+    Portfolio cards appear in the <strong>Portfolio</strong> section. Upload images, set colours, borders and opacity per card.
 </p>
 
 {% for item in items %}
 <div class="card">
     <div class="card-title">
+        {% if item.image_url %}
+        <img src="/uploads/{{ item.image_url }}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;">
+        {% else %}
         <i class="{{ item.icon }}" style="color:var(--primary);"></i>
+        {% endif %}
         {{ item.title }}
         {% if item.link %}<a href="{{ item.link }}" target="_blank" style="font-size:0.78rem;color:var(--muted);margin-left:8px;"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>{% endif %}
         {% if not item.enabled %}<span class="badge badge-red" style="font-size:0.7rem;margin-left:8px;">Hidden</span>{% endif %}
@@ -22,16 +26,19 @@
             </form>
         </span>
     </div>
-    <form method="POST" action="/admin/portfolio-items/{{ item.id }}">
+
+    <form method="POST" action="/admin/portfolio-items/{{ item.id }}" enctype="multipart/form-data">
+
+        <!-- ── BASICS ── -->
         <div class="form-grid">
             <div class="form-group">
                 <label>Title</label>
                 <input type="text" name="title" value="{{ item.title }}" required>
             </div>
             <div class="form-group">
-                <label>Font Awesome Icon</label>
+                <label>Font Awesome Icon <span style="color:var(--muted);font-size:0.78rem;font-weight:400;">(shown when no image)</span></label>
                 <div style="display:flex;gap:10px;align-items:center;">
-                    <i id="port-preview-{{ item.id }}" class="{{ item.icon }}" style="font-size:1.6rem;color:var(--primary);width:30px;text-align:center;"></i>
+                    <i id="port-preview-{{ item.id }}" class="{{ item.icon }}" style="font-size:1.6rem;color:{{ item.icon_color or 'var(--primary)' }};width:30px;text-align:center;"></i>
                     <input type="text" name="icon" value="{{ item.icon }}" placeholder="e.g. fa-solid fa-store"
                            oninput="document.getElementById('port-preview-{{ item.id }}').className=this.value;" style="flex:1;">
                 </div>
@@ -57,7 +64,7 @@
                         <i class="fa-solid fa-arrow-up-right-from-square"></i> External
                     </span>
                 </div>
-                <span class="form-hint">Leave empty for a display-only card (no click through).</span>
+                <span class="form-hint">Leave empty for display-only card.</span>
             </div>
             <div class="form-group" style="display:flex;align-items:center;">
                 <div class="checkbox-row" style="margin-top:22px;">
@@ -71,7 +78,7 @@
             </div>
         </div>
 
-        <!-- Quick Icon Picks -->
+        <!-- ── QUICK ICON PICKS ── -->
         <div style="margin:12px 0;padding:14px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
             <p style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Quick Icon Picks</p>
             <div style="display:flex;flex-wrap:wrap;gap:8px;">
@@ -93,7 +100,123 @@
             </div>
         </div>
 
-        <div class="checkbox-row" style="margin:12px 0;">
+        <!-- ── IMAGE ── -->
+        <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:4px;">
+            <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">
+                <i class="fa-solid fa-image" style="color:var(--primary);margin-right:6px;"></i> Card Image <span style="font-size:0.7rem;font-weight:400;">— replaces icon when set</span>
+            </p>
+            <input type="file" name="image" accept="image/*">
+            {% if item.image_url %}
+            <div style="display:flex;align-items:center;gap:12px;margin-top:10px;padding:10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+                <img src="/uploads/{{ item.image_url }}" style="width:72px;height:52px;object-fit:cover;border-radius:6px;">
+                <div style="flex:1;font-size:0.82rem;font-weight:600;color:var(--muted);">{{ item.image_url }}</div>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.82rem;color:var(--danger);">
+                    <input type="checkbox" name="remove_image" value="1"> Remove image
+                </label>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ── CARD STYLING ── -->
+        <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:8px;">
+            <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;">
+                <i class="fa-solid fa-paintbrush" style="color:var(--primary);margin-right:6px;"></i> Card Styling
+            </p>
+            <div class="form-grid" style="gap:16px;">
+                <div class="form-group">
+                    <label>Background Color</label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="color" name="bg_color" value="{{ item.bg_color or '#ffffff' }}"
+                               style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;"
+                               oninput="this.nextElementSibling.value=this.value">
+                        <input type="text" value="{{ item.bg_color or '' }}" placeholder="empty = theme default"
+                               oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))this.previousElementSibling.value=this.value;this.closest('form').querySelector('[name=bg_color]').value=this.value;"
+                               style="flex:1;">
+                        <button type="button" onclick="this.closest('form').querySelector('[name=bg_color]').value='';this.previousElementSibling.value='';this.previousElementSibling.previousElementSibling.value='#ffffff';"
+                            style="padding:6px 10px;background:var(--danger)18;color:var(--danger);border:1px solid var(--danger)40;border-radius:6px;cursor:pointer;font-size:0.75rem;white-space:nowrap;">Clear</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Opacity <span style="font-size:0.75rem;color:var(--muted);">1 = fully visible, 0 = invisible</span></label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="range" name="opacity" min="0" max="1" step="0.05"
+                               value="{{ item.opacity or 1.0 }}"
+                               oninput="this.nextElementSibling.textContent=parseFloat(this.value).toFixed(2)"
+                               style="flex:1;">
+                        <span style="min-width:32px;font-size:0.88rem;font-weight:600;">{{ '%.2f'|format((item.opacity or 1.0)|float) }}</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Border Width (px)</label>
+                    <input type="number" name="border_width" min="0" max="20" value="{{ item.border_width or 0 }}" style="max-width:100px;">
+                </div>
+                <div class="form-group">
+                    <label>Border Radius (px)</label>
+                    <input type="number" name="border_radius" min="0" max="80" value="{{ item.border_radius or 8 }}" style="max-width:100px;">
+                </div>
+                <div class="form-group full">
+                    <label>Border Color</label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="color" name="border_color" value="{{ item.border_color or '#cccccc' }}"
+                               style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;"
+                               oninput="this.nextElementSibling.value=this.value">
+                        <input type="text" value="{{ item.border_color or '' }}" placeholder="#cccccc"
+                               oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))this.previousElementSibling.value=this.value;this.closest('form').querySelector('[name=border_color]').value=this.value;"
+                               style="flex:1;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TEXT / ICON COLOURS ── -->
+        <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:8px;">
+            <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;">
+                <i class="fa-solid fa-font" style="color:var(--primary);margin-right:6px;"></i> Text &amp; Icon Colours <span style="font-size:0.7rem;font-weight:400;">(leave empty to use theme defaults)</span>
+            </p>
+            <div class="form-grid" style="gap:16px;">
+                <div class="form-group">
+                    <label>Icon Colour</label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="color" name="icon_color" value="{{ item.icon_color or '#7c3aed' }}"
+                               style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;"
+                               oninput="this.nextElementSibling.value=this.value;document.getElementById('port-preview-{{ item.id }}').style.color=this.value;">
+                        <input type="text" value="{{ item.icon_color or '' }}" placeholder="empty = theme"
+                               oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))this.previousElementSibling.value=this.value;this.closest('form').querySelector('[name=icon_color]').value=this.value;"
+                               style="flex:1;">
+                        <button type="button" onclick="this.closest('form').querySelector('[name=icon_color]').value='';this.previousElementSibling.value='';this.previousElementSibling.previousElementSibling.value='#7c3aed';"
+                            style="padding:6px 10px;background:var(--danger)18;color:var(--danger);border:1px solid var(--danger)40;border-radius:6px;cursor:pointer;font-size:0.75rem;">Clear</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Title Colour</label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="color" name="title_color" value="{{ item.title_color or '#1a1a1a' }}"
+                               style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;"
+                               oninput="this.nextElementSibling.value=this.value">
+                        <input type="text" value="{{ item.title_color or '' }}" placeholder="empty = theme"
+                               oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))this.previousElementSibling.value=this.value;this.closest('form').querySelector('[name=title_color]').value=this.value;"
+                               style="flex:1;">
+                        <button type="button" onclick="this.closest('form').querySelector('[name=title_color]').value='';this.previousElementSibling.value='';this.previousElementSibling.previousElementSibling.value='#1a1a1a';"
+                            style="padding:6px 10px;background:var(--danger)18;color:var(--danger);border:1px solid var(--danger)40;border-radius:6px;cursor:pointer;font-size:0.75rem;">Clear</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description Colour</label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="color" name="desc_color" value="{{ item.desc_color or '#555555' }}"
+                               style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;"
+                               oninput="this.nextElementSibling.value=this.value">
+                        <input type="text" value="{{ item.desc_color or '' }}" placeholder="empty = theme"
+                               oninput="if(this.value.match(/^#[0-9a-fA-F]{6}$/))this.previousElementSibling.value=this.value;this.closest('form').querySelector('[name=desc_color]').value=this.value;"
+                               style="flex:1;">
+                        <button type="button" onclick="this.closest('form').querySelector('[name=desc_color]').value='';this.previousElementSibling.value='';this.previousElementSibling.previousElementSibling.value='#555555';"
+                            style="padding:6px 10px;background:var(--danger)18;color:var(--danger);border:1px solid var(--danger)40;border-radius:6px;cursor:pointer;font-size:0.75rem;">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="checkbox-row" style="margin:16px 0;">
             <input type="checkbox" name="enabled" id="en-port-{{ item.id }}" {% if item.enabled %}checked{% endif %}>
             <label for="en-port-{{ item.id }}">Visible on site</label>
         </div>
@@ -145,8 +268,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Quick Icon Picks for new form -->
         <div style="margin:12px 0;padding:14px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
             <p style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Quick Icon Picks</p>
             <div style="display:flex;flex-wrap:wrap;gap:8px;">
@@ -167,7 +288,6 @@
                 {% endfor %}
             </div>
         </div>
-
         <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Portfolio Item</button>
     </form>
 </div>
