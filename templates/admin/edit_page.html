@@ -660,6 +660,52 @@
                 </div>
             </div>
 
+            <!-- ── BACKGROUND IMAGE ── -->
+            <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:4px;">
+                <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">
+                    <i class="fa-solid fa-image" style="color:var(--primary);margin-right:6px;"></i> Section Background Image
+                </p>
+                <div class="form-group">
+                    <label>Upload Background Image</label>
+                    <input type="file" name="bg_image_file" accept="image/*" style="margin-top:6px;">
+                    <span class="form-hint">Covers the entire section behind content. Works with overlay settings above.</span>
+                </div>
+                {% if sec.bg_image %}
+                <div style="display:flex;align-items:center;gap:12px;margin-top:8px;padding:10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+                    <img src="/uploads/{{ sec.bg_image }}" style="width:80px;height:50px;object-fit:cover;border-radius:4px;" alt="bg">
+                    <div style="flex:1;">
+                        <div style="font-size:0.8rem;font-weight:600;">Current: {{ sec.bg_image }}</div>
+                    </div>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.8rem;color:var(--danger);">
+                        <input type="checkbox" name="clear_bg_image" value="1"> Remove
+                    </label>
+                </div>
+                {% endif %}
+                {% if sec.type == 'carousel' %}
+                <div class="form-group" style="margin-top:14px;">
+                    <label>Slide Speed (ms)</label>
+                    <input type="number" name="carousel_speed" min="1000" max="15000" step="500"
+                        value="{{ sec.carousel_speed or 4000 }}" style="max-width:140px;">
+                    <span class="form-hint">Time each slide shows. 4000 = 4 seconds.</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="checkbox-row" style="margin: 20px 0 12px 0;">
+                <input type="checkbox" name="enabled" id="en-{{ sec.id }}" {% if sec.enabled %}checked{% endif %}>
+                <label for="en-{{ sec.id }}">Section visible on site</label>
+            </div>
+            <div style="display:flex; gap:10px; margin-bottom:8px;">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Section
+                </button>
+                <button type="button" class="btn btn-danger btn-sm"
+                    onclick="if(confirm('Delete this section?')){var f=document.createElement('form');f.method='POST';f.action='/admin/sections/{{ sec.id }}/delete';document.body.appendChild(f);f.submit();}">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+            </div>
+        </form>
+
             <!-- ── SECTION BUTTONS ── -->
             <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:4px;">
                 <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">
@@ -811,37 +857,6 @@
                 </form>
             </div>
 
-            <!-- ── BACKGROUND IMAGE ── -->
-            <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:4px;">
-                <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">
-                    <i class="fa-solid fa-image" style="color:var(--primary);margin-right:6px;"></i> Section Background Image
-                </p>
-                <div class="form-group">
-                    <label>Upload Background Image</label>
-                    <input type="file" name="bg_image_file" accept="image/*" style="margin-top:6px;">
-                    <span class="form-hint">Covers the entire section behind content. Works with overlay settings above.</span>
-                </div>
-                {% if sec.bg_image %}
-                <div style="display:flex;align-items:center;gap:12px;margin-top:8px;padding:10px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
-                    <img src="/uploads/{{ sec.bg_image }}" style="width:80px;height:50px;object-fit:cover;border-radius:4px;" alt="bg">
-                    <div style="flex:1;">
-                        <div style="font-size:0.8rem;font-weight:600;">Current: {{ sec.bg_image }}</div>
-                    </div>
-                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.8rem;color:var(--danger);">
-                        <input type="checkbox" name="clear_bg_image" value="1"> Remove
-                    </label>
-                </div>
-                {% endif %}
-                {% if sec.type == 'carousel' %}
-                <div class="form-group" style="margin-top:14px;">
-                    <label>Slide Speed (ms)</label>
-                    <input type="number" name="carousel_speed" min="1000" max="15000" step="500"
-                        value="{{ sec.carousel_speed or 4000 }}" style="max-width:140px;">
-                    <span class="form-hint">Time each slide shows. 4000 = 4 seconds.</span>
-                </div>
-                {% endif %}
-            </div>
-
             <!-- ── SECTION CARDS ── -->
             <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:4px;">
                 <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">
@@ -962,6 +977,7 @@
             </div>
 
             <!-- ── MULTI-IMAGE / COLLAGE ── -->
+            <form method="POST" action="/admin/sections/{{ sec.id }}" enctype="multipart/form-data">
             <div class="form-group full" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:4px;">
                 <p style="font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">
                     <i class="fa-solid fa-images" style="color:var(--primary);margin-right:6px;"></i>
@@ -1031,21 +1047,10 @@
                 </div>
                 {% endif %}
             </div>
-
-            <div class="checkbox-row" style="margin: 16px 0;">
-                <input type="checkbox" name="enabled" id="en-{{ sec.id }}" {% if sec.enabled %}checked{% endif %}>
-                <label for="en-{{ sec.id }}">Section visible on site</label>
-            </div>
-            <div style="display:flex; gap:10px; margin-top:8px;">
-                <button type="submit" class="btn btn-primary btn-sm">
-                    <i class="fa-solid fa-floppy-disk"></i> Save Section
-                </button>
-                <button type="button" class="btn btn-danger btn-sm"
-                    onclick="if(confirm('Delete this section?')){var f=document.createElement('form');f.method='POST';f.action='/admin/sections/{{ sec.id }}/delete';document.body.appendChild(f);f.submit();}">
-                    <i class="fa-solid fa-trash"></i> Delete
-                </button>
-            </div>
-        </form>
+            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:10px;">
+                <i class="fa-solid fa-floppy-disk"></i> Save Images
+            </button>
+            </form>
     </div>
 </div>
 {% endfor %}
