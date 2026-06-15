@@ -432,6 +432,26 @@ def _migrate(conn):
         ("sections", "section_bg_gradient_dir",      "TEXT DEFAULT '135deg'"),
         ("sections", "card_bg_gradient",             "TEXT DEFAULT ''"),
         ("sections", "card_bg_gradient2",            "TEXT DEFAULT ''"),
+        # service_cards extended styling
+        ("service_cards", "image_url",       "TEXT DEFAULT ''"),
+        ("service_cards", "bg_color",        "TEXT DEFAULT ''"),
+        ("service_cards", "border_width",    "INTEGER DEFAULT 0"),
+        ("service_cards", "border_color",    "TEXT DEFAULT ''"),
+        ("service_cards", "border_radius",   "INTEGER DEFAULT 8"),
+        ("service_cards", "opacity",         "REAL DEFAULT 1.0"),
+        ("service_cards", "icon_color",      "TEXT DEFAULT ''"),
+        ("service_cards", "title_color",     "TEXT DEFAULT ''"),
+        ("service_cards", "desc_color",      "TEXT DEFAULT ''"),
+        # portfolio_items extended styling
+        ("portfolio_items", "image_url",     "TEXT DEFAULT ''"),
+        ("portfolio_items", "bg_color",      "TEXT DEFAULT ''"),
+        ("portfolio_items", "border_width",  "INTEGER DEFAULT 0"),
+        ("portfolio_items", "border_color",  "TEXT DEFAULT ''"),
+        ("portfolio_items", "border_radius", "INTEGER DEFAULT 8"),
+        ("portfolio_items", "opacity",       "REAL DEFAULT 1.0"),
+        ("portfolio_items", "icon_color",    "TEXT DEFAULT ''"),
+        ("portfolio_items", "title_color",   "TEXT DEFAULT ''"),
+        ("portfolio_items", "desc_color",    "TEXT DEFAULT ''"),
     ]
     for table, col, col_def in migrations:
         if USE_POSTGRES:
