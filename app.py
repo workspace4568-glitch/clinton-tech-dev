@@ -521,6 +521,7 @@ def admin_move_section(section_id):
     return redirect(url_for('admin_edit_page', page_id=page_id))
 
 
+@app.route('/admin/sections/add/<int:page_id>', methods=['POST'])
 @admin_required
 def admin_add_section(page_id):
     sec_type = request.form.get('type', 'content')
