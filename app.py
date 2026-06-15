@@ -129,6 +129,10 @@ def render_ctx(s, nav, socials):
     theme_css = THEME_CSS.get(s['theme'], THEME_CSS['bold-studio'])
     return dict(s=s, nav=nav, socials=socials, scheme=scheme, theme_css=theme_css)
 
+def admin_ctx(conn):
+    """Minimal context required by admin/base.html (just s)."""
+    return dict(s=get_settings(conn))
+
 def execute(conn, sql, params=()):
     """Execute with the right placeholder style."""
     if USE_POSTGRES:
@@ -180,8 +184,8 @@ def site_page(slug):
                                    scheme=next((c for c in COLOR_SCHEMES if c['id']==s['color_scheme']),COLOR_SCHEMES[0]),
                                    theme_css=THEME_CSS.get(s['theme'],THEME_CSS['bold-studio'])), 404
         sections = get_sections(conn, page['id'], enabled_only=True)
-        sec_cards   = {s['id']: get_section_cards(conn, s['id'], enabled_only=True) for s in sections}
-        sec_buttons = {s['id']: get_section_buttons(conn, s['id']) for s in sections}
+        sec_cards   = {sec['id']: get_section_cards(conn, sec['id'], enabled_only=True) for sec in sections}
+        sec_buttons = {sec['id']: get_section_buttons(conn, sec['id']) for sec in sections}
         nav    = get_nav(conn)
         socials = get_socials(conn)
     ctx = render_ctx(s, nav, socials)
@@ -216,10 +220,10 @@ def admin_logout():
 @admin_required
 def admin_dashboard():
     with db() as conn:
-        s = get_settings(conn)
+        ctx = admin_ctx(conn)
         pages = get_pages(conn)
-    return render_template('admin/dashboard.html', s=s, pages=pages,
-                           themes=THEMES, schemes=COLOR_SCHEMES)
+    return render_template('admin/dashboard.html', pages=pages,
+                           themes=THEMES, schemes=COLOR_SCHEMES, **ctx)
 
 # ─── ADMIN SETTINGS ───────────────────────────────────────────────────────────
 @app.route('/admin/settings', methods=['GET', 'POST'])
@@ -299,26 +303,31 @@ def admin_settings():
 
             flash('Settings saved!', 'success')
             return redirect(url_for('admin_settings'))
-        return render_template('admin/settings.html', s=s, themes=THEMES, schemes=COLOR_SCHEMES)
+        ctx = admin_ctx(conn)
+        return render_template('admin/settings.html', themes=THEMES, schemes=COLOR_SCHEMES, **ctx)
 
 # ─── ADMIN PAGES ─────────────────────────────────────────────────────────────
 @app.route('/admin/pages')
 @admin_required
 def admin_pages():
     with db() as conn:
+        ctx = admin_ctx(conn)
         pages = get_pages(conn)
-    return render_template('admin/pages.html', pages=pages)
+    return render_template('admin/pages.html', pages=pages, **ctx)
 
 @app.route('/admin/pages/new', methods=['GET', 'POST'])
 @admin_required
 def admin_new_page():
+    def _get_admin_ctx():
+        with db() as conn:
+            return admin_ctx(conn)
     if request.method == 'POST':
         title    = request.form.get('title','').strip()
         slug     = request.form.get('slug','').strip()
         template = request.form.get('page_template', 'blank')
         if not title or not slug:
             flash('Title and slug are required.', 'error')
-            return render_template('admin/new_page.html')
+            return render_template('admin/new_page.html', **_get_admin_ctx())
         page_id = None
         try:
             with db() as conn:
@@ -357,10 +366,10 @@ def admin_new_page():
                             (page_id, 'content'))
         except Exception as e:
             flash(f'Error creating page: {e}', 'error')
-            return render_template('admin/new_page.html')
+            return render_template('admin/new_page.html', **_get_admin_ctx())
         flash('Page created!', 'success')
         return redirect(url_for('admin_edit_page', page_id=page_id))
-    return render_template('admin/new_page.html')
+    return render_template('admin/new_page.html', **_get_admin_ctx())
 
 @app.route('/admin/pages/<int:page_id>', methods=['GET', 'POST'])
 @admin_required
@@ -384,7 +393,9 @@ def admin_edit_page(page_id):
     except Exception as e:
         flash(f'Error loading page: {e}', 'error')
         return redirect(url_for('admin_pages'))
-    return render_template('admin/edit_page.html', page=page, sections=sections, sec_cards=sec_cards, sec_buttons=sec_buttons)
+    with db() as conn2:
+        ctx = admin_ctx(conn2)
+    return render_template('admin/edit_page.html', page=page, sections=sections, sec_cards=sec_cards, sec_buttons=sec_buttons, **ctx)
 
 @app.route('/admin/pages/<int:page_id>/delete', methods=['POST'])
 @admin_required
@@ -669,7 +680,8 @@ def admin_nav():
                 execute(conn, "DELETE FROM nav_items WHERE id=?", (request.form.get('id'),))
                 flash('Nav link removed.', 'success')
         nav = get_nav(conn)
-    return render_template('admin/nav.html', nav=nav)
+        ctx = admin_ctx(conn)
+    return render_template('admin/nav.html', nav=nav, **ctx)
 
 # ─── ADMIN SOCIALS ────────────────────────────────────────────────────────────
 @app.route('/admin/socials', methods=['GET', 'POST'])
@@ -687,7 +699,8 @@ def admin_socials():
                 execute(conn, "DELETE FROM social_links WHERE id=?", (request.form.get('id'),))
                 flash('Social link removed.', 'success')
         socials = get_socials(conn)
-    return render_template('admin/socials.html', socials=socials)
+        ctx = admin_ctx(conn)
+    return render_template('admin/socials.html', socials=socials, **ctx)
 
 # ─── ADMIN INITIATIVES ────────────────────────────────────────────────────────
 @app.route('/admin/initiatives', methods=['GET', 'POST'])
@@ -709,7 +722,9 @@ def admin_initiatives():
                 execute(conn, "DELETE FROM initiatives WHERE id=?", (request.form.get('id'),))
                 flash('Initiative deleted.', 'success')
         initiatives = get_all_initiatives(conn)
-    return render_template('admin/initiatives.html', initiatives=initiatives)
+    with db() as _c:
+        _ctx = admin_ctx(_c)
+    return render_template('admin/initiatives.html', initiatives=initiatives, **_ctx)
 
 @app.route('/admin/initiatives/<int:init_id>', methods=['POST'])
 @admin_required
@@ -790,41 +805,6 @@ def seed():
                         (title, desc, f'fa-solid {icon}', i))
 
 # ─── STARTUP ─────────────────────────────────────────────────────────────────
-with app.app_context():
-    init_db()
-    seed()
-    # Add columns that may be missing from older deployments
-    _MISSING_COLS = [
-        ("site_settings", "hero_position",       "TEXT DEFAULT 'relative'"),
-        ("site_settings", "hero_height",         "TEXT DEFAULT 'screen'"),
-        ("site_settings", "nav_style",           "TEXT DEFAULT 'slide-right'"),
-        ("site_settings", "font_heading",        "TEXT DEFAULT ''"),
-        ("site_settings", "font_body",           "TEXT DEFAULT ''"),
-        ("site_settings", "font_mono",           "TEXT DEFAULT ''"),
-        ("site_settings", "container_max_width", "INTEGER DEFAULT 1200"),
-        ("site_settings", "container_justify",   "TEXT DEFAULT 'center'"),
-        ("site_settings", "button_style",        "TEXT DEFAULT 'solid'"),
-        ("site_settings", "button_radius",       "INTEGER DEFAULT 6"),
-        ("site_settings", "contact_hours",       "TEXT DEFAULT ''"),
-    ]
-    with db() as conn:
-        cur = conn.cursor()
-        for table, col, col_def in _MISSING_COLS:
-            if USE_POSTGRES:
-                try:
-                    cur.execute("SAVEPOINT _missing_col_sp")
-                    cur.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}")
-                    cur.execute("RELEASE SAVEPOINT _missing_col_sp")
-                except Exception:
-                    cur.execute("ROLLBACK TO SAVEPOINT _missing_col_sp")
-            else:
-                try:
-                    cur.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}")
-                except Exception:
-                    pass  # column already exists — safe to ignore
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 # ─── SERVICE CARDS ───────────────────────────────────────────────────────────
 @app.route('/admin/service-cards', methods=['GET', 'POST'])
@@ -843,7 +823,9 @@ def admin_service_cards():
                 execute(conn, "DELETE FROM service_cards WHERE id=?", (f.get('id'),))
                 flash('Deleted.', 'success')
         cards = get_all_service_cards(conn)
-    return render_template('admin/service_cards.html', cards=cards)
+    with db() as _c:
+        _ctx = admin_ctx(_c)
+    return render_template('admin/service_cards.html', cards=cards, **_ctx)
 
 @app.route('/admin/service-cards/<int:card_id>', methods=['POST'])
 @admin_required
@@ -898,7 +880,9 @@ def admin_portfolio_items():
                 execute(conn, "DELETE FROM portfolio_items WHERE id=?", (f.get('id'),))
                 flash('Deleted.', 'success')
         items = get_all_portfolio_items(conn)
-    return render_template('admin/portfolio_items.html', items=items)
+    with db() as _c:
+        _ctx = admin_ctx(_c)
+    return render_template('admin/portfolio_items.html', items=items, **_ctx)
 
 @app.route('/admin/portfolio-items/<int:item_id>', methods=['POST'])
 @admin_required
@@ -973,7 +957,9 @@ def admin_gallery():
     with media_db() as mconn:
         init_gallery(mconn)
         items = get_all_gallery_items(mconn)
-    return render_template('admin/gallery.html', items=items, is_video=is_video)
+    with db() as _c:
+        _ctx = admin_ctx(_c)
+    return render_template('admin/gallery.html', items=items, is_video=is_video, **_ctx)
 
 @app.route('/admin/gallery/upload', methods=['POST'])
 @admin_required
@@ -1049,8 +1035,10 @@ def admin_export():
     with db() as conn:
         s = get_settings(conn)
         pages = get_pages(conn)
-    return render_template('admin/export.html', s=s, pages=pages,
-                           status=_export_status)
+    with db() as _c:
+        _ctx = admin_ctx(_c)
+    return render_template('admin/export.html', pages=pages,
+                           status=_export_status, **_ctx)
 
 @app.route('/admin/export/run', methods=['POST'])
 @admin_required
@@ -1100,3 +1088,39 @@ def admin_export_download():
     zip_export(out_dir, zip_path)
     return send_file(zip_path, as_attachment=True, download_name=fname,
                      mimetype='application/zip')
+
+with app.app_context():
+    init_db()
+    seed()
+    # Add columns that may be missing from older deployments
+    _MISSING_COLS = [
+        ("site_settings", "hero_position",       "TEXT DEFAULT 'relative'"),
+        ("site_settings", "hero_height",         "TEXT DEFAULT 'screen'"),
+        ("site_settings", "nav_style",           "TEXT DEFAULT 'slide-right'"),
+        ("site_settings", "font_heading",        "TEXT DEFAULT ''"),
+        ("site_settings", "font_body",           "TEXT DEFAULT ''"),
+        ("site_settings", "font_mono",           "TEXT DEFAULT ''"),
+        ("site_settings", "container_max_width", "INTEGER DEFAULT 1200"),
+        ("site_settings", "container_justify",   "TEXT DEFAULT 'center'"),
+        ("site_settings", "button_style",        "TEXT DEFAULT 'solid'"),
+        ("site_settings", "button_radius",       "INTEGER DEFAULT 6"),
+        ("site_settings", "contact_hours",       "TEXT DEFAULT ''"),
+    ]
+    with db() as conn:
+        cur = conn.cursor()
+        for table, col, col_def in _MISSING_COLS:
+            if USE_POSTGRES:
+                try:
+                    cur.execute("SAVEPOINT _missing_col_sp")
+                    cur.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}")
+                    cur.execute("RELEASE SAVEPOINT _missing_col_sp")
+                except Exception:
+                    cur.execute("ROLLBACK TO SAVEPOINT _missing_col_sp")
+            else:
+                try:
+                    cur.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}")
+                except Exception:
+                    pass  # column already exists — safe to ignore
+
+if __name__ == '__main__':
+    app.run(debug=True)
