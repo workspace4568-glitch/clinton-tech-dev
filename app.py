@@ -157,7 +157,8 @@ def index():
 
 @app.route('/<slug>')
 def site_page_short(slug):
-    reserved = {'admin', 'uploads', 'gallery', 'static'}
+    # Only truly reserved Flask/app routes — not section type names
+    reserved = {'admin', 'uploads', 'static'}
     if slug in reserved:
         from flask import abort; abort(404)
     with db() as conn:
@@ -849,8 +850,31 @@ def admin_update_service_card(card_id):
     f = request.form
     enabled = 1 if 'enabled' in f else 0
     with db() as conn:
-        execute(conn, "UPDATE service_cards SET title=?,description=?,icon=?,enabled=? WHERE id=?",
-                (f.get('title',''), f.get('description',''), f.get('icon','fa-solid fa-star'), enabled, card_id))
+        cur = execute(conn, "SELECT * FROM service_cards WHERE id=?", (card_id,))
+        card = cur.fetchone()
+        image_url = dict(card).get('image_url', '') if card else ''
+        # Handle image upload
+        file = request.files.get('image')
+        if file and file.filename and allowed_file(file.filename):
+            fname = secure_filename(f"svc_{card_id}_{file.filename}")
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
+            image_url = fname
+        # Handle image removal
+        if f.get('remove_image') == '1':
+            if image_url and not image_url.startswith('default-'):
+                old_path = os.path.join(app.config['UPLOAD_FOLDER'], image_url)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+            image_url = ''
+        execute(conn, """UPDATE service_cards SET title=?,description=?,icon=?,enabled=?,
+            image_url=?,bg_color=?,border_width=?,border_color=?,border_radius=?,opacity=?,
+            icon_color=?,title_color=?,desc_color=? WHERE id=?""",
+                (f.get('title',''), f.get('description',''), f.get('icon','fa-solid fa-star'), enabled,
+                 image_url, f.get('bg_color',''), int(f.get('border_width',0) or 0),
+                 f.get('border_color',''), int(f.get('border_radius',8) or 8),
+                 float(f.get('opacity',1.0) or 1.0),
+                 f.get('icon_color',''), f.get('title_color',''), f.get('desc_color',''),
+                 card_id))
     flash('Card saved!', 'success')
     return redirect(url_for('admin_service_cards'))
 
@@ -882,9 +906,32 @@ def admin_update_portfolio_item(item_id):
     enabled = 1 if 'enabled' in f else 0
     link_new_tab = 1 if 'link_new_tab' in f else 0
     with db() as conn:
-        execute(conn, "UPDATE portfolio_items SET title=?,description=?,icon=?,link=?,link_new_tab=?,enabled=? WHERE id=?",
+        cur = execute(conn, "SELECT * FROM portfolio_items WHERE id=?", (item_id,))
+        item = cur.fetchone()
+        image_url = dict(item).get('image_url', '') if item else ''
+        # Handle image upload
+        file = request.files.get('image')
+        if file and file.filename and allowed_file(file.filename):
+            fname = secure_filename(f"port_{item_id}_{file.filename}")
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
+            image_url = fname
+        # Handle image removal
+        if f.get('remove_image') == '1':
+            if image_url and not image_url.startswith('default-'):
+                old_path = os.path.join(app.config['UPLOAD_FOLDER'], image_url)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+            image_url = ''
+        execute(conn, """UPDATE portfolio_items SET title=?,description=?,icon=?,link=?,link_new_tab=?,enabled=?,
+            image_url=?,bg_color=?,border_width=?,border_color=?,border_radius=?,opacity=?,
+            icon_color=?,title_color=?,desc_color=? WHERE id=?""",
                 (f.get('title',''), f.get('description',''), f.get('icon','fa-solid fa-briefcase'),
-                 f.get('link',''), link_new_tab, enabled, item_id))
+                 f.get('link',''), link_new_tab, enabled,
+                 image_url, f.get('bg_color',''), int(f.get('border_width',0) or 0),
+                 f.get('border_color',''), int(f.get('border_radius',8) or 8),
+                 float(f.get('opacity',1.0) or 1.0),
+                 f.get('icon_color',''), f.get('title_color',''), f.get('desc_color',''),
+                 item_id))
     flash('Item saved!', 'success')
     return redirect(url_for('admin_portfolio_items'))
 
