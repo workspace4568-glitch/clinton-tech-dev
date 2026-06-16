@@ -25,6 +25,7 @@ SUPABASE_BUCKET = os.environ.get('SUPABASE_BUCKET', 'media')
 def upload_to_supabase(file_obj, filename):
     """Upload a file-like object to Supabase Storage and return its public URL.
     Falls back to local disk if Supabase is not configured."""
+    import urllib.parse
     if not SUPABASE_KEY:
         # Fallback: save locally
         file_obj.seek(0)
@@ -36,7 +37,11 @@ def upload_to_supabase(file_obj, filename):
     data = file_obj.read()
     content_type = getattr(file_obj, 'content_type', None) or 'application/octet-stream'
 
-    upload_url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{filename}"
+    # URL-encode bucket name and filename to handle spaces and special characters
+    encoded_bucket = urllib.parse.quote(SUPABASE_BUCKET, safe='')
+    encoded_filename = urllib.parse.quote(filename, safe='')
+
+    upload_url = f"{SUPABASE_URL}/storage/v1/object/{encoded_bucket}/{encoded_filename}"
     req = urllib.request.Request(
         upload_url,
         data=data,
@@ -53,11 +58,13 @@ def upload_to_supabase(file_obj, filename):
         body = e.read().decode('utf-8', errors='replace')
         raise RuntimeError(f"Supabase upload failed ({e.code}): {body}")
 
-    return f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{filename}"
+    # Public URL also needs encoding
+    return f"{SUPABASE_URL}/storage/v1/object/public/{encoded_bucket}/{encoded_filename}"
 
 def delete_from_supabase(url_or_filename):
     """Delete a file from Supabase Storage. Accepts a full URL or bare filename.
     Silently skips default assets and local filenames."""
+    import urllib.parse
     if not url_or_filename or not SUPABASE_KEY:
         return
     # Skip default placeholder SVGs
@@ -70,7 +77,9 @@ def delete_from_supabase(url_or_filename):
         # It's a legacy local filename — nothing to delete from Supabase
         return
 
-    delete_url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{filename}"
+    encoded_bucket = urllib.parse.quote(SUPABASE_BUCKET, safe='')
+    encoded_filename = urllib.parse.quote(filename, safe='')
+    delete_url = f"{SUPABASE_URL}/storage/v1/object/{encoded_bucket}/{encoded_filename}"
     req = urllib.request.Request(
         delete_url,
         method='DELETE',
