@@ -1,4 +1,6 @@
 import os
+import urllib.request
+import urllib.error
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from werkzeug.utils import secure_filename
 from functools import wraps
@@ -12,8 +14,83 @@ from database import (db, media_db, init_db, USE_POSTGRES, _p, count, last_inser
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'clinton-tech-dev-suite-2024-secret')
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB for video uploads
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'ico', 'svg'}
+
+# ─── SUPABASE STORAGE ─────────────────────────────────────────────────────────
+SUPABASE_URL    = os.environ.get('SUPABASE_URL', 'https://eitxpweqmdpanfncsbek.supabase.co').rstrip('/')
+SUPABASE_KEY    = os.environ.get('SUPABASE_KEY', '')
+SUPABASE_BUCKET = os.environ.get('SUPABASE_BUCKET', 'media')
+
+def upload_to_supabase(file_obj, filename):
+    """Upload a file-like object to Supabase Storage and return its public URL.
+    Falls back to local disk if Supabase is not configured."""
+    if not SUPABASE_KEY:
+        # Fallback: save locally
+        file_obj.seek(0)
+        save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file_obj.save(save_path)
+        return filename  # local filename only
+
+    file_obj.seek(0)
+    data = file_obj.read()
+    content_type = getattr(file_obj, 'content_type', None) or 'application/octet-stream'
+
+    upload_url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{filename}"
+    req = urllib.request.Request(
+        upload_url,
+        data=data,
+        method='PUT',
+        headers={
+            'Authorization': f'Bearer {SUPABASE_KEY}',
+            'Content-Type': content_type,
+            'x-upsert': 'true',
+        }
+    )
+    try:
+        urllib.request.urlopen(req)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode('utf-8', errors='replace')
+        raise RuntimeError(f"Supabase upload failed ({e.code}): {body}")
+
+    return f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{filename}"
+
+def delete_from_supabase(url_or_filename):
+    """Delete a file from Supabase Storage. Accepts a full URL or bare filename.
+    Silently skips default assets and local filenames."""
+    if not url_or_filename or not SUPABASE_KEY:
+        return
+    # Skip default placeholder SVGs
+    if url_or_filename.startswith('default-'):
+        return
+    # Extract filename from full URL if needed
+    if url_or_filename.startswith('http'):
+        filename = url_or_filename.split('/')[-1]
+    else:
+        # It's a legacy local filename — nothing to delete from Supabase
+        return
+
+    delete_url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{filename}"
+    req = urllib.request.Request(
+        delete_url,
+        method='DELETE',
+        headers={'Authorization': f'Bearer {SUPABASE_KEY}'}
+    )
+    try:
+        urllib.request.urlopen(req)
+    except Exception:
+        pass  # Non-fatal: file may already be gone
+
+def _image_src(url_or_filename):
+    """Return a usable src for templates. Full URLs pass through; bare filenames
+    become /uploads/<filename> for backward-compat with old records."""
+    if not url_or_filename:
+        return ''
+    if url_or_filename.startswith('http'):
+        return url_or_filename
+    return url_for('uploaded_file', filename=url_or_filename)
+
+app.jinja_env.globals['image_src'] = _image_src
 
 def _safe_float(v, default=0.0):
     try: return float(v or 0)
@@ -242,9 +319,9 @@ def admin_settings():
                 file = request.files.get(field)
                 if file and file.filename and allowed_file(file.filename):
                     fname = secure_filename(f"{field}_{file.filename}")
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
-                    if field == 'logo': logo_url = fname
-                    else:               fav_url  = fname
+                    new_url = upload_to_supabase(file, fname)
+                    if field == 'logo': logo_url = new_url
+                    else:               fav_url  = new_url
 
             p = _p()
             fields = {
@@ -427,24 +504,21 @@ def admin_update_section(section_id):
         image_url = sec['image_url']
         # Remove image if checkbox ticked
         if f.get('remove_image') == '1':
-            old_path = os.path.join(app.config['UPLOAD_FOLDER'], image_url) if image_url else None
-            if old_path and os.path.exists(old_path) and not image_url.startswith('default-'):
-                os.remove(old_path)
+            delete_from_supabase(image_url)
             image_url = ''
         # Upload new image (overrides remove if both happen)
         file = request.files.get('image')
         if file and file.filename and allowed_file(file.filename):
             fname = secure_filename(f"sec_{section_id}_{file.filename}")
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
-            image_url = fname
+            image_url = upload_to_supabase(file, fname)
         # Handle bg_image upload
         bg_image_url = sec.get('bg_image', '')
         bg_file = request.files.get('bg_image_file')
         if bg_file and bg_file.filename and allowed_file(bg_file.filename):
             bfname = secure_filename(f"sec_bg_{section_id}_{bg_file.filename}")
-            bg_file.save(os.path.join(app.config['UPLOAD_FOLDER'], bfname))
-            bg_image_url = bfname
+            bg_image_url = upload_to_supabase(bg_file, bfname)
         if f.get('clear_bg_image'):
+            delete_from_supabase(bg_image_url)
             bg_image_url = ''
 
         # Handle multiple image uploads
@@ -452,10 +526,13 @@ def admin_update_section(section_id):
         for mf in request.files.getlist('multi_images'):
             if mf and mf.filename and allowed_file(mf.filename):
                 mfname = secure_filename(f"sec_{section_id}_multi_{mf.filename}")
-                mf.save(os.path.join(app.config['UPLOAD_FOLDER'], mfname))
-                image_urls_list.append(mfname)
+                new_url = upload_to_supabase(mf, mfname)
+                image_urls_list.append(new_url)
         # Remove individual images by index
         remove_idxs = set(int(x) for x in f.getlist('remove_multi_image') if x.isdigit())
+        for i in remove_idxs:
+            if i < len(image_urls_list):
+                delete_from_supabase(image_urls_list[i])
         image_urls_list = [u for i, u in enumerate(image_urls_list) if i not in remove_idxs]
 
         execute(conn, """
@@ -567,8 +644,7 @@ def admin_add_section_card(section_id):
         img_file = request.files.get('image')
         if img_file and img_file.filename and allowed_file(img_file.filename):
             fname = secure_filename(f"card_{section_id}_{img_file.filename}")
-            img_file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
-            img_url = fname
+            img_url = upload_to_supabase(img_file, fname)
         link_new_tab = 1 if 'link_new_tab' in f else 0
         execute(conn, "INSERT INTO section_cards (section_id,title,description,icon,image_url,link,link_new_tab,ord,enabled) VALUES (?,?,?,?,?,?,?,?,1)",
                 (section_id, f.get('title','New Card'), f.get('description',''),
@@ -587,9 +663,9 @@ def admin_update_section_card(card_id):
         img_file = request.files.get('image')
         if img_file and img_file.filename and allowed_file(img_file.filename):
             fname = secure_filename(f"card_{card_id}_{img_file.filename}")
-            img_file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
-            img_url = fname
+            img_url = upload_to_supabase(img_file, fname)
         if f.get('clear_image'):
+            delete_from_supabase(img_url)
             img_url = ''
         enabled = 1 if 'enabled' in f else 0
         link_new_tab = 1 if 'link_new_tab' in f else 0
@@ -840,14 +916,10 @@ def admin_update_service_card(card_id):
         file = request.files.get('image')
         if file and file.filename and allowed_file(file.filename):
             fname = secure_filename(f"svc_{card_id}_{file.filename}")
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
-            image_url = fname
+            image_url = upload_to_supabase(file, fname)
         # Handle image removal
         if f.get('remove_image') == '1':
-            if image_url and not image_url.startswith('default-'):
-                old_path = os.path.join(app.config['UPLOAD_FOLDER'], image_url)
-                if os.path.exists(old_path):
-                    os.remove(old_path)
+            delete_from_supabase(image_url)
             image_url = ''
         execute(conn, """UPDATE service_cards SET title=?,description=?,icon=?,enabled=?,
             image_url=?,bg_color=?,border_width=?,border_color=?,border_radius=?,opacity=?,
@@ -898,14 +970,10 @@ def admin_update_portfolio_item(item_id):
         file = request.files.get('image')
         if file and file.filename and allowed_file(file.filename):
             fname = secure_filename(f"port_{item_id}_{file.filename}")
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
-            image_url = fname
+            image_url = upload_to_supabase(file, fname)
         # Handle image removal
         if f.get('remove_image') == '1':
-            if image_url and not image_url.startswith('default-'):
-                old_path = os.path.join(app.config['UPLOAD_FOLDER'], image_url)
-                if os.path.exists(old_path):
-                    os.remove(old_path)
+            delete_from_supabase(image_url)
             image_url = ''
         execute(conn, """UPDATE portfolio_items SET title=?,description=?,icon=?,link=?,link_new_tab=?,enabled=?,
             image_url=?,bg_color=?,border_width=?,border_color=?,border_radius=?,opacity=?,
@@ -974,10 +1042,10 @@ def admin_gallery_upload():
         for file in files:
             if file and file.filename and gallery_allowed(file.filename):
                 fname = secure_filename(f"gallery_{n}_{file.filename}")
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
+                public_url = upload_to_supabase(file, fname)
                 mtype = 'video' if is_video(fname) else 'image'
                 execute(mconn, "INSERT INTO gallery_items (title,caption,media_type,filename,category,ord) VALUES (?,?,?,?,?,?)",
-                        (title or file.filename, caption, mtype, fname, category, n))
+                        (title or file.filename, caption, mtype, public_url, category, n))
                 n += 1
     flash('Media uploaded!', 'success')
     return redirect(url_for('admin_gallery'))
@@ -991,9 +1059,7 @@ def admin_gallery_delete(item_id):
         row = cur.fetchone()
         if row:
             fname = dict(row)['filename']
-            fpath = os.path.join(app.config['UPLOAD_FOLDER'], fname)
-            if os.path.exists(fpath):
-                os.remove(fpath)
+            delete_from_supabase(fname)
         execute(mconn, "DELETE FROM gallery_items WHERE id=?", (item_id,))
     flash('Item deleted.', 'success')
     return redirect(url_for('admin_gallery'))
