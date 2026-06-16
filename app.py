@@ -26,19 +26,32 @@ def upload_to_supabase(file_obj, filename):
     """Upload a file-like object to Supabase Storage and return its public URL.
     Falls back to local disk if Supabase is not configured."""
     import urllib.parse
+
     if not SUPABASE_KEY:
         # Fallback: save locally
-        file_obj.seek(0)
         save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file_obj.save(save_path)
         return filename  # local filename only
 
-    file_obj.seek(0)
+    # Read file bytes — use .read() directly; Werkzeug FileStorage supports it
     data = file_obj.read()
-    content_type = getattr(file_obj, 'content_type', None) or 'application/octet-stream'
+    if not data:
+        # Try stream attribute as fallback
+        try:
+            file_obj.stream.seek(0)
+            data = file_obj.stream.read()
+        except Exception:
+            pass
+
+    # Detect content type
+    content_type = (
+        getattr(file_obj, 'content_type', None)
+        or getattr(file_obj, 'mimetype', None)
+        or 'application/octet-stream'
+    )
 
     # URL-encode bucket name and filename to handle spaces and special characters
-    encoded_bucket = urllib.parse.quote(SUPABASE_BUCKET, safe='')
+    encoded_bucket   = urllib.parse.quote(SUPABASE_BUCKET, safe='')
     encoded_filename = urllib.parse.quote(filename, safe='')
 
     upload_url = f"{SUPABASE_URL}/storage/v1/object/{encoded_bucket}/{encoded_filename}"
@@ -328,9 +341,13 @@ def admin_settings():
                 file = request.files.get(field)
                 if file and file.filename and allowed_file(file.filename):
                     fname = secure_filename(f"{field}_{file.filename}")
-                    new_url = upload_to_supabase(file, fname)
-                    if field == 'logo': logo_url = new_url
-                    else:               fav_url  = new_url
+                    try:
+                        new_url = upload_to_supabase(file, fname)
+                        if field == 'logo': logo_url = new_url
+                        else:               fav_url  = new_url
+                    except Exception as e:
+                        app.logger.error(f"Supabase upload error for {field}: {e}")
+                        flash(f'Image upload failed: {e}', 'error')
 
             p = _p()
             fields = {
